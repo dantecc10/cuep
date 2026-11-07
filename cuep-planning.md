@@ -47,8 +47,8 @@ El sistema utiliza una arquitectura híbrida desacoplada (*Heavy Compute Delegat
 
 * **RNF-01 Software Libre y Open Source (FOSS):** Todo el stack debe ser 100% gratuito y de código abierto sin dependencia de servicios de suscripción de pago.
 * **RNF-02 Seguridad de las Comunicaciones:** Las peticiones entre el Worker local y la API en el VPS se autentican mediante tokens seguros (JWT / API Keys) con tráfico encriptado HTTPS/SSL.
-* **RNF-03 Portabilidad del Entorno:** La infraestructura del servidor debe estar empaquetada mediante **Docker Compose** para garantizar despliegues limpios en cualquier servidor VPS Linux.
-* **RNF-04 Escalabilidad y Persistencia:** La base de datos estará estructurada sobre PostgreSQL para soportar relaciones complejas de muchos a muchos de manera eficiente.
+* **RNF-03 Portabilidad del Entorno:** La infraestructura del servidor se configura manualmente (sin contenedores) mediante scripts y servicios systemd, documentados en `docs/08-despliegue-manual.md`, para despliegue en VPS Linux o equipo local de pruebas.
+* **RNF-05 Almacenamiento de Objetos:** Fotos de perfil y adjuntos se almacenan en Cloudflare R2 (S3-compatible); la base de datos solo guarda referencias/URLs.
 
 ---
 
@@ -86,8 +86,31 @@ El sistema utiliza una arquitectura híbrida desacoplada (*Heavy Compute Delegat
 CREATE TABLE usuarios (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
+    apellido_paterno VARCHAR(100) NOT NULL,
+    apellido_materno VARCHAR(100),
     email VARCHAR(100) UNIQUE NOT NULL,
-    rol VARCHAR(20) NOT NULL -- 'coordinador', 'tutor'
+    password_hash VARCHAR(255) NOT NULL,
+    rol VARCHAR(20) NOT NULL CHECK (rol IN ('admin','coordinador','tutor')),
+    es_tutor BOOLEAN NOT NULL DEFAULT FALSE,
+    telefono VARCHAR(30),
+    biografia_md TEXT,
+    foto_url VARCHAR(500),
+    carga_max_horas INT DEFAULT 0,
+    area_principal VARCHAR(50),
+    creado_en TIMESTAMP DEFAULT NOW(),
+    actualizado_en TIMESTAMP DEFAULT NOW()
+);
+
+-- Almacenamiento de objetos (Cloudflare R2): solo se guardan referencias
+CREATE TABLE archivos (
+    id SERIAL PRIMARY KEY,
+    owner_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
+    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('foto_perfil','biografia_adjunto')),
+    key_r2 VARCHAR(500) NOT NULL UNIQUE,
+    url_publica VARCHAR(500),
+    mime_type VARCHAR(100),
+    tamano_bytes BIGINT,
+    creado_en TIMESTAMP DEFAULT NOW()
 );
 
 -- 2. Materias según oferta BUAP (Prepa y Módulos de Licenciatura)
@@ -128,5 +151,8 @@ CREATE TABLE corridas_horarios (
     actualizado_en TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_corridas_hash ON corridas_horarios(config_hash);
-```
+---
+
+## 6. Documentación Complementaria
+
+Ver directorio [`docs/`](docs/README.md) para arquitectura detallada, modelo de datos, API REST, protocolo worker, solver CP-SAT, casos de uso, frontend, despliegue y seguridad.
