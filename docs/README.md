@@ -16,6 +16,10 @@ Sistema de generación de horarios de asesorías BUAP (prepa y licenciatura).
 | 08 | [Despliegue Manual](08-despliegue-manual.md) | Configuración sin Docker en servidor/local |
 | 09 | [Seguridad](09-seguridad.md) | Auth, roles, HTTPS, auditoría |
 
+## Fundamentos matemáticos
+
+Ver [`math/README.md`](math/README.md) para la justificación teórica y fórmulas.
+
 ## Convenciones
 
 - Diagramas en Mermaid.
