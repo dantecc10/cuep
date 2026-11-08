@@ -1,0 +1,22 @@
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, List
+
+
+class CorridaCreate(BaseModel):
+    sede_id: int
+    grupo_ids: List[int]
+    parametros: Optional[dict] = None
+
+
+class CorridaRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    config_hash: str
+    estado: str
+    solicitado_por: Optional[str] = None
+    parametros_resumen: Optional[dict] = None
+    resultado_json: Optional[dict] = None
+    metricas_optimizacion: Optional[dict] = None
+    intentos: int = 0
+    progreso: int = 0
+    etapa: Optional[str] = None

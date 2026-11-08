@@ -2,7 +2,7 @@
 
 ## Stack
 
-React 18 + Vite + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanStack Query + Zustand (auth). Routing: React Router v6. Forms: React Hook Form + Zod.
+Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanStack Query + Zustand (auth). Forms: React Hook Form + Zod.
 
 ## Rutas
 

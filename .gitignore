@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/.env
+frontend/.env.local
+
+# DB / local
+*.sqlite
+*.db
+
+# OS
+.DS_Store
