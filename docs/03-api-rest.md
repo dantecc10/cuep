@@ -65,3 +65,22 @@ Base URL: `https://<host>/api/v1`. Formato JSON. Auth: Bearer JWT (usuarios) y `
 
 - 400 validación, 401 no auth, 403 rol, 404 no encontrado, 409 conflicto (hash en proceso), 422 schema, 500 interno.
 - Errores: `{ "detail": "mensaje" }`.
+
+## Estudiantes e inscripciones
+
+### Auth
+- `POST /auth/register` body: `{ email, password, nombre, apellido_paterno, apellido_materno, telefono, sede_id, nivel, area }` → crea usuario rol `alumno` y perfil.
+
+### Estudiantes
+- `GET /students/me`
+- `PUT /students/me` body: `{ sede_id, nivel, area, estatus }`
+- `GET /groups/available?sede_id=&nivel=&area=`
+- `POST /enrollments` body: `{ grupo_id }`
+- `GET /enrollments/me`
+- `DELETE /enrollments/{id}`
+- `GET /students/me/schedule`
+
+### Admin/Coordinador
+- `GET /enrollments?grupo_id=&estado=`
+- `PATCH /enrollments/{id}` body: `{ estado, payment_status }`
+- `PUT /sedes/{id}/enrollment-settings` body: `{ waitlist_enabled, payment_enabled, payment_amount, payment_currency }`

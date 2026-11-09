@@ -5,6 +5,7 @@
 - **Admin**: gestiona usuarios, materias, sedes.
 - **Coordinador**: registra tutores, solicita corridas, consulta resultados.
 - **Tutor**: consulta su asignación (solo lectura).
+- **Alumno**: se registra, consulta grupos disponibles, se inscribe y consulta su asignación.
 - **Worker**: proceso automatizado.
 
 ## Casos de uso principales
@@ -36,3 +37,16 @@ Actor: Coordinador. Lista corridas por sede, compara métricas entre versiones.
 - Estado inicial `PENDIENTE`.
 - Hash reproducible para misma entrada.
 - Worker procesa en < 5 min para 20 tutores / 10 grupos.
+
+
+### UC-08 Registrar alumno
+Actor: Alumno. Flujo: auto-registro con sede, nivel y área → perfil creado. Criterio: alumno puede iniciar sesión.
+
+### UC-09 Inscribirse a grupo
+Actor: Alumno. Flujo: consulta grupos disponibles → inscripción → confirmada, pendiente de pago o lista de espera. Criterio: cupo respetado y notificación enviada.
+
+### UC-10 Cancelar inscripción
+Actor: Alumno. Flujo: cancela inscripción → si había cupo, promoción automática del siguiente en lista de espera. Criterio: cupo liberado y promoción notificada.
+
+### UC-11 Consultar asignación
+Actor: Alumno. Flujo: consulta su grupo y tutor asignado tras corrida completada. Criterio: información visible.

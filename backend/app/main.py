@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.database import engine
 from app.core.limiter import limiter
-from app.routers import auth, users, materias, sedes, tutores, corridas, worker, two_factor
+from app.routers import auth, users, materias, sedes, tutores, corridas, worker, two_factor, students
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,6 +27,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(two_factor.router, prefix="/api/v1")
+app.include_router(students.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(materias.router, prefix="/api/v1")
 app.include_router(sedes.router, prefix="/api/v1")

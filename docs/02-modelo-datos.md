@@ -130,3 +130,34 @@ Reglas:
 
 - Un tutor no puede tener disponibilidades solapadas (validar en app).
 - `config_hash` calculado sobre JSON canónico ordenado de entradas inmutables.
+
+## Estudiantes e inscripciones
+
+### students
+| Col | Tipo / Constraint |
+|---|---|
+| id | SERIAL PK |
+| user_id | INT FK usuarios UNIQUE |
+| sede_id | INT FK sedes |
+| nivel | VARCHAR(20) NOT NULL CHECK IN ('PREPA','LICENCIATURA') |
+| area | VARCHAR(50) |
+| estatus | VARCHAR(20) DEFAULT 'activo' |
+| creado_en | TIMESTAMPTZ DEFAULT NOW() |
+| actualizado_en | TIMESTAMPTZ DEFAULT NOW() |
+
+### enrollments
+| Col | Tipo / Constraint |
+|---|---|
+| id | SERIAL PK |
+| student_id | INT FK students |
+| grupo_id | INT FK grupos |
+| estado | VARCHAR(20) DEFAULT 'confirmada' CHECK IN ('confirmada','pendiente_pago','cancelada','lista_espera') |
+| payment_status | VARCHAR(20) DEFAULT 'no_requerido' |
+| creado_en | TIMESTAMPTZ DEFAULT NOW() |
+| actualizado_en | TIMESTAMPTZ DEFAULT NOW() |
+
+### Configuración de inscripción por sede
+Los campos `waitlist_enabled`, `payment_enabled`, `payment_amount` y `payment_currency` en `sedes` controlan lista de espera y pago manual.
+
+### Grupos
+`grupos.min_alumnos` permite definir un mínimo para abrir un grupo en corridas (configurable, por defecto 0).
