@@ -2,6 +2,14 @@
 
 Sistema de generación de horarios de asesorías BUAP (prepa y licenciatura).
 
+## Guía para la organización
+
+La carpeta [`guia-organizacion/`](guia-organizacion/README.md) explica el proyecto
+con un lenguaje no técnico y está dirigida a tutores, coordinadores, estudiantes y
+militantes del CUEP. Ayuda a entender qué problema se quiere resolver, cómo
+participa cada persona, qué beneficios se esperan y cuál es el estado actual del
+desarrollo.
+
 ## Índice
 
 | # | Documento | Descripción |
