@@ -20,6 +20,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await api.post("/auth/login", { email, password });
+      if (res.data.requires_2fa) {
+        router.push(`/verify-2fa?challenge=${res.data.challenge_id}`);
+        return;
+      }
       setToken(res.data.access_token);
       router.push("/dashboard");
     } catch {

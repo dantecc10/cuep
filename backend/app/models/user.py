@@ -21,5 +21,7 @@ class User(Base):
     carga_max_horas: Mapped[int] = mapped_column(Integer, default=0)
     area_principal: Mapped[str | None] = mapped_column(String(50))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    totp_secret: Mapped[str | None] = mapped_column(String(500))
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

@@ -1,3 +1,9 @@
+import base64
+import hashlib
+import secrets
+import pyotp
+from cryptography.fernet import Fernet
+
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 from passlib.context import CryptContext
@@ -34,3 +40,46 @@ def decode_token(token: str) -> dict | None:
         return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
     except Exception:
         return None
+
+
+
+
+
+
+def _fernet() -> Fernet:
+    key = settings.TOTP_ENCRYPTION_KEY.strip()
+    if not key:
+        digest = hashlib.sha256(settings.JWT_SECRET.encode()).digest()
+        key = base64.urlsafe_b64encode(digest).decode()
+    return Fernet(key.encode() if isinstance(key, str) else key)
+
+
+def encrypt_totp_secret(secret: str) -> str:
+    return _fernet().encrypt(secret.encode()).decode()
+
+
+def decrypt_totp_secret(token: str) -> str:
+    return _fernet().decrypt(token.encode()).decode()
+
+
+def generate_totp_secret() -> str:
+    return pyotp.random_base32()
+
+
+def totp_provisioning_uri(secret: str, account_name: str) -> str:
+    return pyotp.TOTP(secret).provisioning_uri(name=account_name, issuer_name="CUEP")
+
+
+def verify_totp(secret: str, code: str) -> bool:
+    try:
+        return pyotp.TOTP(secret).verify(code, valid_window=1)
+    except Exception:
+        return False
+
+
+def generate_recovery_code() -> str:
+    return secrets.token_hex(4).upper()
+
+
+def hash_recovery_code(code: str) -> str:
+    return pwd_context.hash(code)

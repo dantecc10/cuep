@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = ""
     SMTP_FROM_NAME: str = "CUEP"
     SOLVER_TIMEOUT: int = 300
+    TOTP_ENCRYPTION_KEY: str = ""
 
     @property
     def cors_origins_list(self) -> List[str]:
