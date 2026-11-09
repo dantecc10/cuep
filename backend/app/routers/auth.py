@@ -47,7 +47,7 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_async_db))
 
 
 
-@router.post("/register")
+@router.post("/register", status_code=201)
 async def register(payload: dict, db: AsyncSession = Depends(get_async_db)):
     from app.schemas.student import StudentRegister
     data = StudentRegister(**payload)

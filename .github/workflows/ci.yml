@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cuep
+          POSTGRES_PASSWORD: cuep_ci
+          POSTGRES_DB: cuep
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cuep -d cuep"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://cuep:cuep_ci@localhost:5432/cuep
+      JWT_SECRET: ci-secret-change-me-please-32chars-minimum
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      WORKER_API_KEY: ci-worker-key
+      CORS_ORIGINS: '["http://localhost:3000"]'
+      TOTP_ENCRYPTION_KEY: "S6vIcSyRe5MOUpiQzCWw5e9-mU0ZAip7MMDFUwZ7AMM="
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run migrations
+        working-directory: backend
+        run: alembic upgrade head
+      - name: Seed data
+        working-directory: backend
+        run: python seeds/load.py
+      - name: Lint
+        working-directory: backend
+        run: ruff check app
+      - name: Tests
+        working-directory: backend
+        run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+      - name: Build
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+        run: npm run build
+
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: worker
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Compile
+        working-directory: worker
+        run: python -m py_compile worker.py
