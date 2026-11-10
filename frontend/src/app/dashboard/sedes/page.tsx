@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/shared/page-header";
+import { DataTable, type Column } from "@/components/shared/data-table";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirmDialog } from "@/components/shared/confirm-dialog";
 
 interface Sede { id: number; nombre: string; ciudad: string | null; codigo: string | null; descripcion: string | null; maps_url: string | null; image_url: string | null; activo: boolean; }
 
@@ -16,10 +20,11 @@ export default function SedesPage() {
   const token = useAuthStore((s) => s.token);
   const headers = { Authorization: `Bearer ${token}` };
   const queryClient = useQueryClient();
+  const { confirm, dialog } = useConfirmDialog();
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const { data } = useQuery<Sede[]>({ queryKey: ["sedes"], queryFn: async () => (await api.get("/sedes", { headers })).data });
+  const { data, isLoading } = useQuery<Sede[]>({ queryKey: ["sedes"], queryFn: async () => (await api.get("/sedes", { headers })).data });
 
   const saveMutation = useMutation({
     mutationFn: async () => editingId ? api.put(`/sedes/${editingId}`, form, { headers }) : api.post("/sedes", form, { headers }),
@@ -31,9 +36,27 @@ export default function SedesPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sedes"] }),
   });
 
+  const columns: Column<Sede>[] = [
+    { key: "nombre", header: "Nombre" },
+    { key: "codigo", header: "Código" },
+    { key: "ciudad", header: "Ciudad" },
+    { key: "activo", header: "Activo", render: (item) => (item.activo ? "Sí" : "No") },
+    {
+      key: "acciones",
+      header: "Acciones",
+      render: (item) => (
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => { setEditingId(item.id); setForm({ nombre: item.nombre, ciudad: item.ciudad || "", codigo: item.codigo || "", descripcion: item.descripcion || "", maps_url: item.maps_url || "", image_url: item.image_url || "", activo: item.activo }); }}>Editar</Button>
+          <Button size="sm" variant="outline" onClick={async () => { if (await confirm({ title: "Eliminar sede", description: "¿Eliminar esta sede?" })) deleteMutation.mutate(item.id); }}>Eliminar</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <AppShell title="Sedes">
+    <AppShell title="">
       <div className="space-y-6">
+        <PageHeader title="Sedes" description="Gestión de sedes del colectivo." actions={<Button onClick={() => { setEditingId(null); setForm(empty); }}>Nueva sede</Button>} />
         <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(); }} className="bg-surface border border-primary rounded-card p-6 space-y-4">
           <h2 className="font-display text-2xl uppercase text-primary">{editingId ? "Editar sede" : "Nueva sede"}</h2>
           <div className="grid gap-3 md:grid-cols-2">
@@ -49,20 +72,8 @@ export default function SedesPage() {
             {editingId && <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(empty); }}>Cancelar</Button>}
           </div>
         </form>
-        <div className="space-y-2">
-          {(data || []).map((sede) => (
-            <div key={sede.id} className="border border-primary bg-surface rounded-card p-3 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="font-semibold">{sede.nombre} {sede.codigo ? `(${sede.codigo})` : ""}</p>
-                <p className="text-sm">{sede.ciudad || "Sin ciudad"} {sede.descripcion ? `— ${sede.descripcion}` : ""}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => { setEditingId(sede.id); setForm({ nombre: sede.nombre, ciudad: sede.ciudad || "", codigo: sede.codigo || "", descripcion: sede.descripcion || "", maps_url: sede.maps_url || "", image_url: sede.image_url || "", activo: sede.activo }); }}>Editar</Button>
-                <Button size="sm" variant="outline" onClick={() => deleteMutation.mutate(sede.id)}>Eliminar</Button>
-              </div>
-            </div>
-          ))}
-        </div>
+        {!isLoading && (!data || data.length === 0) ? <EmptyState title="Sin sedes" description="Crea la primera sede del colectivo." /> : <DataTable columns={columns} data={data} isLoading={isLoading} keyExtractor={(item) => item.id} />}
+        {dialog}
       </div>
     </AppShell>
   );
