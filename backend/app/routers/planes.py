@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/planes", tags=["planes"])
 
 @router.get("", response_model=list[PlanEstudioRead])
 async def list_planes(db: AsyncSession = Depends(get_async_db)):
-    result = await db.execute(select(PlanEstudio))
+    result = await db.execute(select(PlanEstudio).where(PlanEstudio.deleted_at.is_(None)))
     return result.scalars().all()
 
 
@@ -61,6 +62,6 @@ async def delete_plan(plan_id: int, user: User = Depends(require_role("admin")),
     plan = await db.get(PlanEstudio, plan_id)
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan no encontrado")
-    await db.delete(plan)
+    plan.deleted_at = datetime.now(timezone.utc)
     await db.flush()
     return None

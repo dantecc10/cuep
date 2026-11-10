@@ -16,6 +16,7 @@ export default function MateriasPage() {
   const [nombre, setNombre] = useState("");
   const [nivel, setNivel] = useState("PREPA");
   const [area, setArea] = useState("Exactas");
+  const [descripcion, setDescripcion] = useState("");
 
   const { data } = useQuery<Materia[]>({
     queryKey: ["materias"],
@@ -23,8 +24,12 @@ export default function MateriasPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async () => api.post("/materias", { nombre, nivel, area }, { headers }),
-    onSuccess: () => { setNombre(""); queryClient.invalidateQueries({ queryKey: ["materias"] }); },
+    mutationFn: async () => api.post("/materias", { nombre, nivel, area, descripcion }, { headers }),
+    onSuccess: () => { setNombre(""); setDescripcion(""); queryClient.invalidateQueries({ queryKey: ["materias"] }); },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => api.delete(`/materias/${id}`, { headers }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["materias"] }),
   });
 
   return (
@@ -37,6 +42,7 @@ export default function MateriasPage() {
             <option value="LICENCIATURA">Licenciatura</option>
           </select>
           <Input placeholder="Área" value={area} onChange={(e) => setArea(e.target.value)} />
+          <Input placeholder="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
           <Button onClick={() => createMutation.mutate()} disabled={!nombre}>Crear</Button>
         </div>
         <div className="space-y-2">
@@ -44,6 +50,8 @@ export default function MateriasPage() {
             <div key={m.id} className="border border-primary bg-surface rounded-card p-3">
               <p className="font-semibold">{m.nombre}</p>
               <p className="text-sm">{m.nivel} — {m.area}</p>
+              {m.descripcion && <p className="text-sm text-muted-foreground">{m.descripcion}</p>}
+              <Button size="sm" variant="outline" onClick={() => deleteMutation.mutate(m.id)}>Eliminar</Button>
             </div>
           ))}
         </div>

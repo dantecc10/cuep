@@ -120,6 +120,36 @@ async def register(payload: dict, db: AsyncSession = Depends(get_async_db)):
     await db.flush()
     return {"id": user.id, "email": user.email, "role": user.role, "matricula": student.matricula}
 
+
+@router.post("/register-tutor", status_code=201)
+async def register_tutor(payload: dict, db: AsyncSession = Depends(get_async_db)):
+    # Reuse basic user fields; tutor profile is optional
+    email = payload.get("email")
+    password = payload.get("password")
+    nombre = payload.get("nombre")
+    apellido_paterno = payload.get("apellido_paterno")
+    apellido_materno = payload.get("apellido_materno")
+    telefono = payload.get("telefono")
+    if not email or not password or not nombre or not apellido_paterno:
+        raise HTTPException(status_code=422, detail="Datos incompletos")
+    exists = await db.execute(select(User).where(User.email == email))
+    if exists.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Email ya registrado")
+    user = User(
+        email=email,
+        password_hash=get_password_hash(password),
+        nombre=nombre,
+        apellido_paterno=apellido_paterno,
+        apellido_materno=apellido_materno,
+        role="tutor",
+        es_tutor=False,
+        telefono=telefono,
+        is_active=True,
+    )
+    db.add(user)
+    await db.flush()
+    return {"id": user.id, "email": user.email, "role": user.role, "estado": "pendiente_aprobacion"}
+
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(payload: RefreshRequest):
     decoded = decode_token(payload.refresh_token)

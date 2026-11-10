@@ -81,7 +81,7 @@ async def create_corrida(payload: CorridaCreate, user: User = Depends(get_curren
 
 @router.get("", response_model=list[CorridaRead])
 async def list_corridas(sede_id: int | None = None, estado: str | None = None, publicada: bool | None = None, db: AsyncSession = Depends(get_async_db)):
-    stmt = select(CorridaHorario)
+    stmt = select(CorridaHorario).where(CorridaHorario.deleted_at.is_(None))
     if sede_id is not None:
         stmt = stmt.where(CorridaHorario.sede_id == sede_id)
     if estado is not None:
@@ -147,3 +147,15 @@ async def reintentar(corrida_id: int, user: User = Depends(get_current_user), db
     corrida.intentos = 0
     await db.flush()
     return corrida
+
+
+@router.delete("/{corrida_id}", status_code=204)
+async def delete_corrida(corrida_id: int, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
+    corrida = await db.get(CorridaHorario, corrida_id)
+    if corrida is None or corrida.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Corrida no encontrada")
+    if not can_manage_sede(user, corrida.sede_id) and user.role != "admin":
+        raise HTTPException(status_code=403, detail="No autorizado para esta sede")
+    corrida.deleted_at = datetime.now(timezone.utc)
+    await db.flush()
+    return None

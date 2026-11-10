@@ -6,6 +6,10 @@ class SedeCreate(BaseModel):
     nombre: str
     ciudad: Optional[str] = None
     codigo: str
+    descripcion: Optional[str] = None
+    maps_url: Optional[str] = None
+    image_url: Optional[str] = None
+    activo: Optional[bool] = True
 
 
 class SedeRead(BaseModel):
@@ -14,10 +18,15 @@ class SedeRead(BaseModel):
     nombre: str
     ciudad: Optional[str] = None
     codigo: Optional[str] = None
+    descripcion: Optional[str] = None
+    maps_url: Optional[str] = None
+    image_url: Optional[str] = None
+    activo: bool = True
     waitlist_enabled: bool = True
     payment_enabled: bool = False
     payment_amount: float = 0
     payment_currency: str = "MXN"
+    deleted_at: Optional[str] = None
 
 
 class GrupoCreate(BaseModel):

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/materias", tags=["materias"])
 
 @router.get("", response_model=list[MateriaRead])
 async def list_materias(nivel: str | None = None, area: str | None = None, db: AsyncSession = Depends(get_async_db)):
-    stmt = select(Materia)
+    stmt = select(Materia).where(Materia.deleted_at.is_(None))
     if nivel:
         stmt = stmt.where(Materia.nivel == nivel)
     if area:
@@ -49,6 +50,6 @@ async def delete_materia(materia_id: int, user: User = Depends(require_role("adm
     materia = await db.get(Materia, materia_id)
     if materia is None:
         raise HTTPException(status_code=404, detail="Materia no encontrada")
-    await db.delete(materia)
+    materia.deleted_at = datetime.now(timezone.utc)
     await db.flush()
     return None

@@ -1,4 +1,6 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_async_db
 from app.core.dependencies import require_role, get_current_user
@@ -44,7 +46,7 @@ async def update_teaching(payload: TeachingUpdate, user: User = Depends(get_curr
 
 @router.get("", response_model=list[UserRead])
 async def list_users(db: AsyncSession = Depends(get_async_db), user=Depends(require_role("admin"))):
-    result = await db.execute(select(User))
+    result = await db.execute(select(User).where(User.deleted_at.is_(None)))
     return result.scalars().all()
 
 
@@ -68,3 +70,14 @@ async def update_user(user_id: int, payload: UserUpdate, db: AsyncSession = Depe
     await db.flush()
     await db.refresh(target)
     return target
+
+
+@router.delete("/{user_id}", status_code=204)
+async def delete_user(user_id: int, user: User = Depends(require_role("admin")), db: AsyncSession = Depends(get_async_db)):
+    target = await db.get(User, user_id)
+    if target is None or target.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    target.deleted_at = datetime.now(timezone.utc)
+    target.is_active = False
+    await db.flush()
+    return None
