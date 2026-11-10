@@ -39,8 +39,18 @@ async def main():
                 session.add(Materia(nombre=nombre, nivel=nivel, area=area))
 
         existing_sede = await session.execute(select(Sede).where(Sede.nombre == "Sede Centro"))
-        if existing_sede.scalar_one_or_none() is None:
-            session.add(Sede(nombre="Sede Centro"))
+        sede = existing_sede.scalar_one_or_none()
+        if sede is None:
+            session.add(
+                Sede(
+                    nombre="Sede Centro",
+                    codigo="C",
+                    ciudad="Puebla",
+                    descripcion="Sede comunitaria del CUEP en el centro de Puebla.",
+                )
+            )
+        elif not sede.codigo:
+            sede.codigo = "C"
 
         await session.commit()
         print("seeded")

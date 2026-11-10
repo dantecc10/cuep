@@ -57,6 +57,11 @@ async def register(payload: dict, db: AsyncSession = Depends(get_async_db)):
     sede = await db.get(Sede, data.sede_id)
     if sede is None:
         raise HTTPException(status_code=404, detail="Sede no encontrada")
+    if not sede.codigo or len(sede.codigo) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La sede no tiene código de matrícula configurado",
+        )
     # check duplicate email
     exists = await db.execute(select(User).where(User.email == data.email))
     if exists.scalar_one_or_none():
@@ -73,10 +78,6 @@ async def register(payload: dict, db: AsyncSession = Depends(get_async_db)):
     )
     db.add(user)
     await db.flush()
-
-    sede = await db.get(Sede, data.sede_id)
-    if sede is None:
-        raise HTTPException(status_code=404, detail="Sede no encontrada")
 
     first_name = data.first_name or data.nombre
     paternal = data.paternal_last_name or data.apellido_paterno

@@ -22,11 +22,16 @@ const config: Config = {
         "red-bright": "#E94B48",
         surface: "#FFFDFC",
         border: "#A92730",
+        ink: "#171313",
+        cream: "#F8F0EC",
+        sand: "#EFE2D4",
+        "paper-deep": "#B99A6F",
       },
       fontFamily: {
         display: ["var(--font-display)", "Impact", "sans-serif"],
         editorial: ["var(--font-editorial)", "Georgia", "serif"],
         sans: ["var(--font-body)", "Arial", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       borderRadius: {
         card: "8px",
@@ -34,6 +39,9 @@ const config: Config = {
       },
       boxShadow: {
         poster: "6px 6px 0 #DDBFC0",
+        "poster-sm": "3px 3px 0 #DDBFC0",
+        "poster-ink": "6px 6px 0 #171313",
+        lift: "0 18px 40px -24px rgba(23, 19, 19, 0.45)",
       },
     },
   },

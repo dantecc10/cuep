@@ -237,10 +237,14 @@ Archivos R2: habilitar versionado del bucket.
 
 ```bash
 cd /opt/cuep && git pull
-cd backend && source .venv/bin/activate && pip install -r requirements.txt && alembic upgrade head
-cd ../frontend && npm ci && npm run build
-cd ../worker && source .venv/bin/activate && pip install -r requirements.txt
-sudo systemctl restart cuep-api cuep-web
+./scripts/deploy.sh
+```
+
+El script `scripts/deploy.sh` aplica migraciones, reinicia `cuep-api.service`, instala dependencias del frontend, construye Next.js y reinicia `cuep-web.service`. Si el backend usa un `.venv` dentro de `backend/`, lo activa automáticamente. Para actualizar el worker:
+
+```bash
+cd /opt/cuep/worker && source .venv/bin/activate && pip install -r requirements.txt
+sudo systemctl restart cuep-worker
 ```
 
 ## 10. CI/CD

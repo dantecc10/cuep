@@ -2,10 +2,10 @@ type Props = { eyebrow?: string; title: string; description?: string };
 
 export function SectionHeading({ eyebrow, title, description }: Props) {
   return (
-    <div className="space-y-2">
-      {eyebrow && <p className="font-semibold text-secondary uppercase tracking-wide text-sm">{eyebrow}</p>}
-      <h2 className="font-display text-3xl md:text-4xl uppercase text-primary">{title}</h2>
-      {description && <p className="font-editorial text-lg max-w-2xl">{description}</p>}
+    <div className="max-w-3xl">
+      {eyebrow && <p className="type-kicker">{eyebrow}</p>}
+      <h2 className="mt-4 font-display text-4xl uppercase leading-[0.94] text-primary md:text-5xl">{title}</h2>
+      {description && <p className="type-deck mt-4 max-w-2xl">{description}</p>}
     </div>
   );
 }

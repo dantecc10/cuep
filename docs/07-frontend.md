@@ -38,6 +38,15 @@ Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanS
 | /dashboard/2fa | Configuración 2FA | autenticado |
 | /mi-inscripcion | Inscripción y horario del alumno | alumno |
 
+## Identidad visual
+
+- Tipografía: Anton para titulares, Roboto Slab para textos editoriales, Inter para UI y JetBrains Mono para matrículas, folios y datos técnicos.
+- Tratamientos reutilizables: `type-kicker`, `type-deck`, `type-label`, `type-stamp`, `type-quote`, `marker`, `display-outline`.
+- Tarjetas: `poster-card`, `poster-card--ink`, `poster-card--paper`, con sombras desplazadas y bordes de tinta.
+- Ilustraciones: `heart.png` como emblema y `penguin.png` como presencia recurrente en navegación, vacíos y llamados a la acción.
+- Dashboard: sidebar fija en escritorio, navegación horizontal en móvil y `AppShell` compartido por todas las vistas autenticadas.
+- Movimiento: una entrada orquestada (`animate-rise`, `animate-stamp`) y respeto a `prefers-reduced-motion`.
+
 ## Componentes clave
 
 - `PerfilForm`: nombre, apellidos, teléfono, área, carga máxima, toggle `es_tutor`.
@@ -47,7 +56,7 @@ Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanS
 - `MateriaMultiSelect`: con nivel de preferencia.
 - `CorridaStatusBadge`: PENDIENTE/PROCESANDO/COMPLETADO/ERROR.
 - `HorarioCalendario`: vista semanal por tutor/grupo.
-- `SiteHeader`, `SiteFooter`, `HeroSection`, `PaperSection`, `PosterFrame`, `CallToAction`, `AppShell`.
+- `SiteChrome`, `SiteHeader`, `SiteFooter`, `HeroSection`, `PaperSection`, `CallToAction`, `AppShell`.
 - Assets de identidad: `heart.png` (logo/favicon/emblema) y `penguin.png` (ilustración secundaria).
 - `MetricasPanel`: métricas del solver.
 

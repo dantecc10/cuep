@@ -19,39 +19,43 @@ export function DataTable<T>({ columns, data, isLoading, keyExtractor, emptyMess
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-11 w-full" />
+        <Skeleton className="h-11 w-full" />
+        <Skeleton className="h-11 w-full" />
       </div>
     );
   }
 
   if (!data || data.length === 0) {
-    return <div className="py-8 text-center text-sm text-muted-foreground">{emptyMessage}</div>;
+    return <div className="border border-dashed border-ink/25 bg-surface px-4 py-10 text-center font-editorial text-base text-ink/55">{emptyMessage}</div>;
   }
 
   return (
-    <div className="rounded-card border border-primary overflow-hidden bg-surface">
-      <table className="w-full text-sm">
-        <thead className="bg-paper/60">
-          <tr>
-            {columns.map((col) => (
-              <th key={col.key} className={`px-4 py-3 text-left font-semibold text-primary ${col.className || ""}`}>{col.header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={keyExtractor(item)} className="border-t border-primary/10 hover:bg-paper/30">
+    <div className="poster-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead className="border-b border-ink bg-paper/70">
+            <tr>
               {columns.map((col) => (
-                <td key={col.key} className={`px-4 py-3 ${col.className || ""}`}>
-                  {col.render ? col.render(item) : String((item as Record<string, unknown>)[col.key] ?? "-")}
-                </td>
+                <th key={col.key} className={`px-4 py-3 text-left font-mono text-[0.62rem] font-bold uppercase tracking-[0.1em] text-ink ${col.className || ""}`}>
+                  {col.header}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={keyExtractor(item)} className="border-t border-ink/10 transition hover:bg-yellow/15">
+                {columns.map((col) => (
+                  <td key={col.key} className={`px-4 py-3 align-middle text-ink/80 ${col.className || ""}`}>
+                    {col.render ? col.render(item) : String((item as Record<string, unknown>)[col.key] ?? "-")}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
