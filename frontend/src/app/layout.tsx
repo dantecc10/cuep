@@ -15,6 +15,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 export const metadata: Metadata = {
   title: "CUEP",
   description: "Generación de horarios de asesorías BUAP",
+  icons: { icon: "/identity/heart.png", apple: "/identity/heart.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -7,7 +7,7 @@ type PosterFrameProps = {
   imageAlt?: string;
 };
 
-export function PosterFrame({ title, subtitle, imageSrc = "/identity/heart.svg", imageAlt = "Emblema del colectivo" }: PosterFrameProps) {
+export function PosterFrame({ title, subtitle, imageSrc = "/identity/heart.png", imageAlt = "Emblema del colectivo" }: PosterFrameProps) {
   return (
     <div className="relative">
       <div className="absolute -right-3 -bottom-3 h-full w-full bg-paper rounded-card" aria-hidden="true" />

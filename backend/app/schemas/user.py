@@ -31,3 +31,12 @@ class UserRead(BaseModel):
 
 class TeachingUpdate(BaseModel):
     enabled: bool
+
+
+class UserUpdate(BaseModel):
+    role: Optional[str] = None
+    sede_id: Optional[int] = None
+    es_tutor: Optional[bool] = None
+    is_active: Optional[bool] = None
+    carga_max_horas: Optional[int] = None
+    area_principal: Optional[str] = None

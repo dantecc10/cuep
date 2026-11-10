@@ -1,10 +1,9 @@
 "use client";
-import { AppShell } from "@/components/layout/app-shell";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function Page() {
-  return (
-    <AppShell title="perfil">
-      <p className="text-sm text-muted-foreground">Módulo en construcción.</p>
-    </AppShell>
-  );
+export default function PerfilPage() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/mi-perfil"); }, [router]);
+  return null;
 }

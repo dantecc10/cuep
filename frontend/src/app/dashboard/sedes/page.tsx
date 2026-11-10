@@ -15,6 +15,7 @@ export default function SedesPage() {
   const queryClient = useQueryClient();
   const [nombre, setNombre] = useState("");
   const [ciudad, setCiudad] = useState("");
+  const [codigo, setCodigo] = useState("");
 
   const { data } = useQuery<Sede[]>({
     queryKey: ["sedes"],
@@ -22,8 +23,8 @@ export default function SedesPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async () => api.post("/sedes", { nombre, ciudad }, { headers }),
-    onSuccess: () => { setNombre(""); setCiudad(""); queryClient.invalidateQueries({ queryKey: ["sedes"] }); },
+    mutationFn: async () => api.post("/sedes", { nombre, ciudad, codigo }, { headers }),
+    onSuccess: () => { setNombre(""); setCiudad(""); setCodigo(""); queryClient.invalidateQueries({ queryKey: ["sedes"] }); },
   });
 
   const deleteMutation = useMutation({
@@ -37,7 +38,8 @@ export default function SedesPage() {
         <div className="flex gap-2">
           <Input placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
           <Input placeholder="Ciudad" value={ciudad} onChange={(e) => setCiudad(e.target.value)} />
-          <Button onClick={() => createMutation.mutate()} disabled={!nombre}>Crear</Button>
+          <Input placeholder="Código (1 carácter)" value={codigo} onChange={(e) => setCodigo(e.target.value)} />
+          <Button onClick={() => createMutation.mutate()} disabled={!nombre || !codigo}>Crear</Button>
         </div>
         <div className="space-y-2">
           {(data || []).map((sede) => (

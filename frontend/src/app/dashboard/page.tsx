@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { AppShell } from "@/components/layout/app-shell";
 
 export default function DashboardPage() {
@@ -17,6 +18,9 @@ export default function DashboardPage() {
           <h2 className="font-display text-2xl uppercase text-primary">Inscripciones</h2>
           <p className="mt-2 text-sm">Cupos, lista de espera y asignación.</p>
         </article>
+      </div>
+      <div className="flex justify-end">
+        <Image src="/identity/penguin.png" alt="Pingüino CUEP" width={96} height={136} className="opacity-80" />
       </div>
     </AppShell>
   );

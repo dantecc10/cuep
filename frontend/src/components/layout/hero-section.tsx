@@ -23,7 +23,7 @@ export function HeroSection() {
         <div className="relative">
           <div className="absolute -right-4 -bottom-4 h-full w-full bg-paper rounded-card" aria-hidden="true" />
           <div className="relative bg-surface border border-primary rounded-card poster-shadow p-6 md:p-8 space-y-4">
-            <Image src="/identity/heart.svg" alt="Corazón ornamental del colectivo" width={96} height={96} />
+            <Image src="/identity/heart.png" alt="Corazón ornamental del colectivo" width={96} height={96} />
             <p className="font-display text-3xl uppercase text-primary">Participa y aprende</p>
             <p className="text-sm">Convocatorias, cursos y asesorías organizadas por sede.</p>
           </div>

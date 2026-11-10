@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 import { PosterFrame } from "@/components/layout/poster-frame";
 
 export default function LoginPage() {
@@ -38,6 +39,9 @@ export default function LoginPage() {
   return (
     <div className="container-site py-12 grid gap-8 md:grid-cols-2 items-center">
       <PosterFrame title="Inicia sesión" subtitle="Acceso al sistema CUEP" imageSrc="/identity/megaphone.svg" />
+      <div className="flex justify-center mb-2">
+        <Image src="/identity/penguin.png" alt="Pingüino CUEP" width={72} height={102} />
+      </div>
       <form onSubmit={handleSubmit} className="bg-surface border border-primary rounded-card p-6 space-y-4 poster-shadow">
         <h2 className="font-display text-3xl uppercase text-primary">Iniciar sesión</h2>
         <div className="space-y-2">
