@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Integer, Time, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Time, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
@@ -21,3 +21,4 @@ class TutorMateria(Base):
     tutor_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     materia_id: Mapped[int] = mapped_column(ForeignKey("materias.id", ondelete="CASCADE"), primary_key=True)
     nivel_preferencia: Mapped[int] = mapped_column(Integer, default=1)
+    vetada: Mapped[bool] = mapped_column(Boolean, default=False)

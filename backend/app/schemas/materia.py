@@ -1,10 +1,12 @@
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
 
 class MateriaCreate(BaseModel):
     nombre: str
     nivel: str
     area: str
+    descripcion: Optional[str] = None
 
 
 class MateriaRead(BaseModel):
@@ -13,3 +15,4 @@ class MateriaRead(BaseModel):
     nombre: str
     nivel: str
     area: str
+    descripcion: Optional[str] = None

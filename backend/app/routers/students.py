@@ -16,7 +16,6 @@ from app.schemas.enrollment import (
     EnrollmentCreate,
     EnrollmentRead,
     EnrollmentStatusUpdate,
-    EnrollmentSettingsUpdate,
 )
 from app.services.email import send_email_sync
 from fastapi.concurrency import run_in_threadpool
@@ -208,7 +207,7 @@ async def my_schedule(user: User = Depends(get_current_user), db: AsyncSession =
             continue
         materia = await db.get(Materia, grupo.materia_id)
         # find latest completed corrida containing this group
-        corridas = await db.execute(select(CorridaHorario).where(CorridaHorario.estado == "COMPLETADO"))
+        corridas = await db.execute(select(CorridaHorario).where(CorridaHorario.estado == "COMPLETADO", CorridaHorario.publicada == True))  # noqa: E712
         tutor_id = None
         slot = None
         for c in corridas.scalars().all():
@@ -267,18 +266,3 @@ async def update_enrollment(enrollment_id: int, payload: EnrollmentStatusUpdate,
     return enrollment
 
 
-@router.put("/sedes/{sede_id}/enrollment-settings")
-async def update_enrollment_settings(sede_id: int, payload: EnrollmentSettingsUpdate, user: User = Depends(require_role("admin")), db: AsyncSession = Depends(get_async_db)):
-    sede = await db.get(Sede, sede_id)
-    if sede is None:
-        raise HTTPException(status_code=404, detail="Sede no encontrada")
-    if payload.waitlist_enabled is not None:
-        sede.waitlist_enabled = payload.waitlist_enabled
-    if payload.payment_enabled is not None:
-        sede.payment_enabled = payload.payment_enabled
-    if payload.payment_amount is not None:
-        sede.payment_amount = payload.payment_amount
-    if payload.payment_currency is not None:
-        sede.payment_currency = payload.payment_currency
-    await db.flush()
-    return {"sede_id": sede.id, "waitlist_enabled": sede.waitlist_enabled, "payment_enabled": sede.payment_enabled, "payment_amount": sede.payment_amount, "payment_currency": sede.payment_currency}

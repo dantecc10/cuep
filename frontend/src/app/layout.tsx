@@ -3,6 +3,7 @@ import { Anton, Roboto_Slab, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { AuthProvider } from "@/components/providers/auth-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -23,10 +24,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#contenido" className="skip-link">Saltar al contenido</a>
         <ThemeProvider defaultTheme="light" enableSystem={false}>
           <QueryProvider>
+            <AuthProvider>
             <SiteHeader />
             <main id="contenido">{children}</main>
             <SiteFooter />
-          </QueryProvider>
+          </AuthProvider>
+            </QueryProvider>
         </ThemeProvider>
         <Toaster />
       </body>

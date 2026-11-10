@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
@@ -14,6 +14,7 @@ class User(Base):
     apellido_paterno: Mapped[str] = mapped_column(String(100), nullable=False)
     apellido_materno: Mapped[str | None] = mapped_column(String(100))
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="tutor")
+    sede_id: Mapped[int | None] = mapped_column(ForeignKey("sedes.id", ondelete="SET NULL"))
     es_tutor: Mapped[bool] = mapped_column(Boolean, default=False)
     telefono: Mapped[str | None] = mapped_column(String(30))
     biografia_md: Mapped[str | None] = mapped_column(String)

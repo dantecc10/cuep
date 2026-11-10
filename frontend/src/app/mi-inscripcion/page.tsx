@@ -1,4 +1,5 @@
 "use client";
+import { AppShell } from "@/components/layout/app-shell";
 interface Group { id: number; materia: string; nombre: string; ocupados: number; capacidad: number; disponibles: number; }
 interface Enrollment { id: number; grupo_id: number; estado: string; payment_status: string; }
 interface ScheduleItem { grupo_id: number; materia: string; grupo: string; tutor: string | null; horario: { hora_inicio: string; hora_fin: string } | null; }
@@ -40,8 +41,9 @@ export default function MiInscripcionPage() {
   }
 
   return (
-    <div className="container-site py-10 space-y-6">
-      <h1 className="font-display text-4xl uppercase text-primary">Mi inscripción</h1>
+    <AppShell title="Mi inscripción">
+      <div className="space-y-6">
+      
       <Card>
         <CardHeader><CardTitle>Grupos disponibles</CardTitle></CardHeader>
         <CardContent className="space-y-2">
@@ -75,5 +77,6 @@ export default function MiInscripcionPage() {
         </CardContent>
       </Card>
     </div>
+    </AppShell>
   );
 }

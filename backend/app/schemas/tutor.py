@@ -12,6 +12,7 @@ class DisponibilidadIn(BaseModel):
 class TutorMateriaIn(BaseModel):
     materia_id: int
     nivel_preferencia: int = 1
+    vetada: bool = False
 
 
 class TutorUpdate(BaseModel):

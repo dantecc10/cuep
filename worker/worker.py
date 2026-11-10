@@ -31,7 +31,15 @@ def solve_corrida(data: dict) -> dict:
     max_horas = parametros.get("max_horas_tutor", 12)
 
     # authorized materias per tutor
-    auth = {t["id"]: {m["materia_id"]: m.get("pref", 1) for m in t.get("materias", [])} for t in tutores}
+    auth = {}
+    roles = {}
+    for t in tutores:
+        roles[t["id"]] = t.get("role", "tutor")
+        auth[t["id"]] = {
+            m["materia_id"]: m.get("pref", 1)
+            for m in t.get("materias", [])
+            if not m.get("vetada", False)
+        }
 
     # availability intervals per tutor as set of hours
     avail_hours = {}
@@ -93,6 +101,8 @@ def solve_corrida(data: dict) -> dict:
         g = next(gg for gg in grupos if gg["id"] == g_id)
         pref = auth[t_id].get(g["materia_id"], 1)
         weight = 10 if pref == 1 else (5 if pref == 2 else 1)
+        if roles.get(t_id) in ("coordinador", "subcoordinador"):
+            weight = max(1, weight - 4)
         obj_terms.append(weight * v)
     model.Maximize(sum(obj_terms))
 

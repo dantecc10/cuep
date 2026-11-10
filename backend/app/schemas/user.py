@@ -20,8 +20,14 @@ class UserRead(BaseModel):
     apellido_paterno: str
     apellido_materno: Optional[str] = None
     role: str
+    sede_id: Optional[int] = None
+    es_tutor: bool = False
     es_tutor: bool
     telefono: Optional[str] = None
     area_principal: Optional[str] = None
     carga_max_horas: int = 0
     is_active: bool = True
+
+
+class TeachingUpdate(BaseModel):
+    enabled: bool

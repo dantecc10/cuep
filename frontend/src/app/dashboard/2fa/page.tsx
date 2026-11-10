@@ -1,4 +1,5 @@
 "use client";
+import { AppShell } from "@/components/layout/app-shell";
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
@@ -37,8 +38,9 @@ export default function TwoFactorPage() {
   }
 
   return (
-    <div className="container-site py-10 space-y-6 max-w-2xl">
-      <h1 className="font-display text-4xl uppercase text-primary">Autenticación en dos pasos</h1>
+    <AppShell title="Autenticación en dos pasos">
+      <div className="space-y-6 max-w-2xl">
+      
       <Card>
         <CardHeader><CardTitle>Configuración TOTP</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -66,5 +68,6 @@ export default function TwoFactorPage() {
         </CardContent>
       </Card>
     </div>
+    </AppShell>
   );
 }

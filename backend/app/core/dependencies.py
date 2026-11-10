@@ -35,6 +35,21 @@ def require_role(*roles: str):
     return checker
 
 
+
+
+def can_manage_sede(user: User, sede_id: int) -> bool:
+    if user.role == "admin":
+        return True
+    if user.role in ("coordinador", "subcoordinador") and user.sede_id == sede_id:
+        return True
+    return False
+
+
+def require_sede_manager(sede_id: int, user: User = Depends(get_current_user)) -> User:
+    if not can_manage_sede(user, sede_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No autorizado para esta sede")
+    return user
+
 def verify_worker_key(provided: str | None) -> bool:
     import hmac
     if provided is None:
