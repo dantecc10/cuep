@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Megáfono (placeholder)">
+  <rect width="200" height="200" fill="#F8F0EC"/>
+  <path d="M45 95 L135 60 L135 140 L45 105 Z" fill="#E94B48" stroke="#171313" stroke-width="4"/>
+  <rect x="30" y="90" width="20" height="20" rx="4" fill="#4611A0" stroke="#171313" stroke-width="4"/>
+  <path d="M145 75 L175 65 M145 100 L180 100 M145 125 L175 135" stroke="#36C6C7" stroke-width="4" stroke-linecap="round"/>
+</svg>

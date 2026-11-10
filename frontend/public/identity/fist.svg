@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Puño levantado (placeholder)">
+  <rect width="200" height="200" fill="#F8F0EC"/>
+  <rect x="70" y="95" width="60" height="70" rx="8" fill="#A92730" stroke="#171313" stroke-width="4"/>
+  <rect x="60" y="70" width="20" height="40" rx="6" fill="#A92730" stroke="#171313" stroke-width="4"/>
+  <rect x="82" y="60" width="20" height="50" rx="6" fill="#A92730" stroke="#171313" stroke-width="4"/>
+  <rect x="104" y="60" width="20" height="50" rx="6" fill="#A92730" stroke="#171313" stroke-width="4"/>
+  <rect x="126" y="70" width="20" height="40" rx="6" fill="#A92730" stroke="#171313" stroke-width="4"/>
+</svg>

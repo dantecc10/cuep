@@ -13,8 +13,8 @@ export default function CorridasPage() {
   });
 
   return (
-    <div className="p-8 space-y-4">
-      <h1 className="text-2xl font-bold">Corridas</h1>
+    <div className="container-site py-10 space-y-6">
+      <h1 className="font-display text-4xl uppercase text-primary">Corridas</h1>
       {isLoading && <p>Cargando...</p>}
       <div className="grid gap-4">
         {(data || []).map((c: {id:number; estado:string; config_hash:string; progreso?:number; etapa?:string; metricas_optimizacion?:unknown}) => (

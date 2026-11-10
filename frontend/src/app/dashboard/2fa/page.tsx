@@ -37,8 +37,8 @@ export default function TwoFactorPage() {
   }
 
   return (
-    <div className="p-8 space-y-4 max-w-2xl">
-      <h1 className="text-2xl font-bold">Autenticación en dos pasos</h1>
+    <div className="container-site py-10 space-y-6 max-w-2xl">
+      <h1 className="font-display text-4xl uppercase text-primary">Autenticación en dos pasos</h1>
       <Card>
         <CardHeader><CardTitle>Configuración TOTP</CardTitle></CardHeader>
         <CardContent className="space-y-4">

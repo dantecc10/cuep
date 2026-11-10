@@ -4,52 +4,152 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --color-primary: #A92730;
+    --color-primary-dark: #851F27;
+    --color-secondary: #4611A0;
+    --color-background: #F8F0EC;
+    --color-paper: #CDB38B;
+    --color-paper-light: #FFFDFC;
+    --color-accent: #36C6C7;
+    --color-text: #171313;
+    --color-yellow: #E8B83E;
+    --color-red-bright: #E94B48;
+    --color-surface: #FFFDFC;
+    --color-border: #A92730;
+
+    --font-display: "Anton", Impact, sans-serif;
+    --font-editorial: "Roboto Slab", Georgia, serif;
+    --font-body: "Inter", Arial, sans-serif;
+
+    --radius-card: 8px;
+    --radius-button: 4px;
+    --shadow-poster: 6px 6px 0 #DDBFC0;
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+
+    --content-max-width: 1200px;
+    --page-gutter: clamp(1rem, 4vw, 3rem);
+
+    --background: 248 240 236;
+    --foreground: 23 19 19;
+    --card: 255 253 252;
+    --card-foreground: 23 19 19;
+    --primary: 169 39 48;
+    --primary-foreground: 255 255 255;
+    --secondary: 70 17 160;
+    --secondary-foreground: 255 255 255;
+    --muted: 205 179 139;
+    --muted-foreground: 23 19 19;
+    --accent: 54 198 199;
+    --accent-foreground: 23 19 19;
+    --border: 169 39 48;
+    --input: 169 39 48;
+    --ring: 70 17 160;
     --radius: 0.5rem;
   }
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-  }
+
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    margin: 0;
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  .display-title {
+    font-family: var(--font-display);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    line-height: 0.98;
+  }
+
+  .editorial-text {
+    font-family: var(--font-editorial);
+  }
+
+  .container-site {
+    width: min(calc(100% - 2 * var(--page-gutter)), var(--content-max-width));
+    margin-inline: auto;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.25rem;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-button);
+    background: var(--color-primary);
+    color: #fff;
+    font-family: var(--font-body);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:focus-visible,
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 3px solid var(--color-secondary);
+    outline-offset: 3px;
+  }
+
+  .poster-shadow {
+    box-shadow: var(--shadow-poster);
+  }
+
+  .paper-surface {
+    background-color: var(--color-paper);
+    background-image: url("/identity/paper-texture.svg");
+    background-size: 400px 400px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -3rem;
+    z-index: 100;
+    background: var(--color-primary);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-button);
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

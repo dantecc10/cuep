@@ -36,7 +36,7 @@ function VerifyForm() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Verificación en dos pasos</CardTitle>
+          <CardTitle className="font-display text-3xl uppercase text-primary">Verificación en dos pasos</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">Te enviamos un código por correo. También puedes usar tu app autenticadora.</p>

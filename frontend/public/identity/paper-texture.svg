@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Textura kraft (placeholder)">
+  <rect width="400" height="400" fill="#CDB38B"/>
+  <g opacity="0.18" stroke="#8B6F47" stroke-width="1">
+    <path d="M0 40 H400 M0 120 H400 M0 200 H400 M0 280 H400 M0 360 H400"/>
+    <path d="M40 0 V400 M120 0 V400 M200 0 V400 M280 0 V400 M360 0 V400"/>
+  </g>
+  <g opacity="0.12" fill="#6B5235">
+    <circle cx="60" cy="80" r="2"/>
+    <circle cx="220" cy="160" r="3"/>
+    <circle cx="310" cy="250" r="2"/>
+    <circle cx="140" cy="320" r="2"/>
+  </g>
+</svg>

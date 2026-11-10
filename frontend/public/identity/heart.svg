@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Corazón ornamental (placeholder)">
+  <rect width="200" height="200" fill="#F8F0EC"/>
+  <path d="M100 165 C45 125 25 85 55 55 C75 35 100 50 100 70 C100 50 125 35 145 55 C175 85 155 125 100 165Z" fill="#A92730" stroke="#171313" stroke-width="4"/>
+  <circle cx="100" cy="100" r="18" fill="#CDB38B" stroke="#4611A0" stroke-width="3"/>
+</svg>

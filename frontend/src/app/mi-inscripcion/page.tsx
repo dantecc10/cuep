@@ -40,13 +40,13 @@ export default function MiInscripcionPage() {
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-2xl font-bold">Mi inscripción</h1>
+    <div className="container-site py-10 space-y-6">
+      <h1 className="font-display text-4xl uppercase text-primary">Mi inscripción</h1>
       <Card>
         <CardHeader><CardTitle>Grupos disponibles</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {groups.map((g) => (
-            <div key={g.id} className="flex items-center justify-between border p-2 rounded">
+            <div key={g.id} className="flex items-center justify-between border border-primary bg-surface rounded-card p-3">
               <span>{g.materia} — {g.nombre} (cupo {g.ocupados}/{g.capacidad})</span>
               <Button size="sm" onClick={() => enroll(g.id)} disabled={g.disponibles <= 0}>Inscribirme</Button>
             </div>
@@ -57,7 +57,7 @@ export default function MiInscripcionPage() {
         <CardHeader><CardTitle>Mis inscripciones</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {enrollments.map((e) => (
-            <div key={e.id} className="flex items-center justify-between border p-2 rounded">
+            <div key={e.id} className="flex items-center justify-between border border-primary bg-surface rounded-card p-3">
               <span>Grupo {e.grupo_id} — {e.estado} ({e.payment_status})</span>
               {e.estado !== "cancelada" && <Button size="sm" variant="outline" onClick={() => cancel(e.id)}>Cancelar</Button>}
             </div>
@@ -68,7 +68,7 @@ export default function MiInscripcionPage() {
         <CardHeader><CardTitle>Mi horario</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {schedule.map((s) => (
-            <div key={s.grupo_id} className="border p-2 rounded">
+            <div key={s.grupo_id} className="border border-primary bg-surface rounded-card p-3">
               {s.materia} — {s.grupo} | Tutor: {s.tutor || "pendiente"} | {s.horario ? `${s.horario.hora_inicio} - ${s.horario.hora_fin}` : "sin horario"}
             </div>
           ))}

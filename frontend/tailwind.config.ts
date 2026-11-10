@@ -10,44 +10,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        primary: "#A92730",
+        "primary-dark": "#851F27",
+        secondary: "#4611A0",
+        background: "#F8F0EC",
+        paper: "#CDB38B",
+        "paper-light": "#FFFDFC",
+        accent: "#36C6C7",
+        text: "#171313",
+        yellow: "#E8B83E",
+        "red-bright": "#E94B48",
+        surface: "#FFFDFC",
+        border: "#A92730",
+      },
+      fontFamily: {
+        display: ["var(--font-display)", "Impact", "sans-serif"],
+        editorial: ["var(--font-editorial)", "Georgia", "serif"],
+        sans: ["var(--font-body)", "Arial", "sans-serif"],
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        card: "8px",
+        button: "4px",
+      },
+      boxShadow: {
+        poster: "6px 6px 0 #DDBFC0",
       },
     },
   },
