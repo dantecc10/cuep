@@ -4,6 +4,8 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/shared/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Enrollment { id: number; student_id: number; grupo_id: number; estado: string; payment_status: string; }
 
@@ -20,7 +22,9 @@ export default function InscripcionesPage() {
 
   return (
     <AppShell title="Inscripciones">
-      <div className="space-y-2">
+      <div className="space-y-4">
+        <PageHeader title="Inscripciones" description="Cupos, lista de espera y pagos." />
+        {(data || []).length === 0 && <EmptyState title="Sin inscripciones" description="No hay inscripciones registradas." />}
         {(data || []).map((e) => (
           <div key={e.id} className="border border-primary bg-surface rounded-card p-3 flex flex-wrap items-center gap-2">
             <span className="font-semibold">#{e.id}</span>

@@ -6,6 +6,8 @@ import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/shared/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Plan { id: number; nombre: string; nivel: string; area: string | null; descripcion: string | null; }
 interface Materia { id: number; nombre: string; nivel: string; area: string; }
@@ -41,6 +43,7 @@ export default function PlanesPage() {
   return (
     <AppShell title="Planes de estudio">
       <div className="space-y-6">
+        <PageHeader title="Planes de estudio" description="Crea planes globales y asigna materias." />
         <div className="flex gap-2">
           <Input placeholder="Nombre del plan" value={nombre} onChange={(e) => setNombre(e.target.value)} />
           <select className="border border-primary rounded-button p-2 bg-surface" value={nivel} onChange={(e) => setNivel(e.target.value)}>
@@ -53,7 +56,7 @@ export default function PlanesPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <h2 className="font-display text-2xl uppercase text-primary">Planes</h2>
-            {(planes || []).map((plan) => (
+            {(planes || []).length === 0 ? <EmptyState title="Sin planes" description="Crea el primer plan de estudios." /> : (planes || []).map((plan) => (
               <button key={plan.id} onClick={() => { setSelectedPlan(plan.id); setSelectedMaterias([]); }} className="w-full text-left border border-primary bg-surface rounded-card p-3 hover:bg-paper">
                 {plan.nombre} — {plan.nivel} {plan.area ? `(${plan.area})` : ""}
               </button>

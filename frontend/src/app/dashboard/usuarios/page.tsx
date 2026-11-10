@@ -4,6 +4,8 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/shared/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface User { id: number; email: string; nombre: string; apellido_paterno: string; role: string; sede_id: number | null; es_tutor: boolean; is_active: boolean; }
 
@@ -20,7 +22,9 @@ export default function UsuariosPage() {
 
   return (
     <AppShell title="Usuarios">
-      <div className="space-y-3">
+      <div className="space-y-4">
+        <PageHeader title="Usuarios" description="Gestión de usuarios, roles y sedes." />
+        {(data || []).length === 0 && <EmptyState title="Sin usuarios" description="No hay usuarios registrados." />}
         {(data || []).map((u) => (
           <div key={u.id} className="border border-primary bg-surface rounded-card p-3 space-y-2">
             <p className="font-semibold">{u.nombre} {u.apellido_paterno} — {u.email}</p>
