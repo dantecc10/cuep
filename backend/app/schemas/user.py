@@ -22,11 +22,23 @@ class UserRead(BaseModel):
     role: str
     sede_id: Optional[int] = None
     es_tutor: bool = False
-    es_tutor: bool
     telefono: Optional[str] = None
+    biografia_md: Optional[str] = None
+    foto_url: Optional[str] = None
     area_principal: Optional[str] = None
     carga_max_horas: int = 0
     is_active: bool = True
+
+
+class UserProfileUpdate(BaseModel):
+    nombre: Optional[str] = None
+    apellido_paterno: Optional[str] = None
+    apellido_materno: Optional[str] = None
+    telefono: Optional[str] = None
+    biografia_md: Optional[str] = None
+    foto_url: Optional[str] = None
+    carga_max_horas: Optional[int] = None
+    area_principal: Optional[str] = None
 
 
 class TeachingUpdate(BaseModel):

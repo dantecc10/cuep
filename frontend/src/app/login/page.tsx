@@ -9,6 +9,7 @@ import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DualMark } from "@/components/layout/dual-mark";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,7 +53,10 @@ export default function LoginPage() {
           </div>
           <div className="mt-8 flex items-end justify-between gap-4">
             <Image src="/identity/penguin.png" alt="Pingüino del CUEP" width={150} height={212} className="h-40 w-auto sm:h-48" />
-            <span className="type-stamp text-yellow">Sesión segura</span>
+            <div className="flex flex-col items-end gap-3">
+              <DualMark variant="dark" size="sm" />
+              <span className="type-stamp text-yellow">Sesión segura</span>
+            </div>
           </div>
         </section>
 

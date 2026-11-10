@@ -167,11 +167,39 @@ async def create_enrollment(payload: EnrollmentCreate, user: User = Depends(get_
     return enrollment
 
 
+async def _enrollment_detail(db: AsyncSession, enrollment: Enrollment) -> dict:
+    student = await db.get(Student, enrollment.student_id)
+    grupo = await db.get(Grupo, enrollment.grupo_id)
+    materia = await db.get(Materia, grupo.materia_id) if grupo else None
+    student_name = None
+    if student:
+        student_name = (
+            " ".join(
+                part
+                for part in [student.first_name, student.paternal_last_name, student.maternal_last_name]
+                if part
+            )
+            or student.full_name
+            or student.email
+        )
+    return {
+        "id": enrollment.id,
+        "student_id": enrollment.student_id,
+        "grupo_id": enrollment.grupo_id,
+        "estado": enrollment.estado,
+        "payment_status": enrollment.payment_status,
+        "student_name": student_name,
+        "student_matricula": student.matricula if student else None,
+        "grupo_name": grupo.nombre if grupo else None,
+        "materia_name": materia.nombre if materia else None,
+    }
+
+
 @router.get("/enrollments/me", response_model=list[EnrollmentRead])
 async def my_enrollments(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
     student = await _get_student(db, user)
     result = await db.execute(select(Enrollment).where(Enrollment.student_id == student.id))
-    return result.scalars().all()
+    return [await _enrollment_detail(db, enrollment) for enrollment in result.scalars().all()]
 
 
 @router.delete("/enrollments/{enrollment_id}", status_code=204)
@@ -236,7 +264,7 @@ async def list_enrollments(grupo_id: int | None = None, estado: str | None = Non
     if estado:
         stmt = stmt.where(Enrollment.estado == estado)
     result = await db.execute(stmt)
-    return result.scalars().all()
+    return [await _enrollment_detail(db, enrollment) for enrollment in result.scalars().all()]
 
 
 @router.patch("/enrollments/{enrollment_id}", response_model=EnrollmentRead)

@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
+import { DualMark } from "@/components/layout/dual-mark";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -85,7 +86,7 @@ export default function RegistroPage() {
           </div>
           <div className="mt-6 flex items-end justify-between gap-4">
             <Image src="/identity/penguin.png" alt="Pingüino del CUEP" width={130} height={184} className="h-32 w-auto" />
-            <Image src="/identity/heart.png" alt="" width={54} height={54} className="h-12 w-12 opacity-80" />
+            <DualMark size="sm" />
           </div>
         </section>
 

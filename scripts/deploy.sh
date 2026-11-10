@@ -38,6 +38,8 @@ run_privileged() {
 if [[ -f "$BACKEND_DIR/.venv/bin/activate" ]]; then
   # shellcheck disable=SC1091
   source "$BACKEND_DIR/.venv/bin/activate"
+  log "Instalando dependencias del backend"
+  python -m pip install -r "$BACKEND_DIR/requirements.txt"
 fi
 
 log "Aplicando migraciones de base de datos"
@@ -50,6 +52,19 @@ run_privileged systemctl restart cuep-api.service
 log "Instalando dependencias del frontend"
 cd "$FRONTEND_DIR"
 npm ci
+
+log "Cargando variables de producción del frontend"
+if [[ -f "$FRONTEND_DIR/.env.production.local" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$FRONTEND_DIR/.env.production.local"
+  set +a
+elif [[ -f "$FRONTEND_DIR/.env.production" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$FRONTEND_DIR/.env.production"
+  set +a
+fi
 
 log "Construyendo frontend"
 npm run build

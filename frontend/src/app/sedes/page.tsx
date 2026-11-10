@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { DualMark } from "@/components/layout/dual-mark";
 
 interface Sede {
   id: number;
@@ -16,11 +17,11 @@ interface Sede {
 }
 
 export default function SedesPage() {
-  const { data, isLoading } = useQuery<Sede[]>({
+  const { data, isLoading, isError, refetch } = useQuery<Sede[]>({
     queryKey: ["sedes-public"],
     queryFn: async () => (await api.get("/sedes")).data,
   });
-  const sedes = (data || []).filter((sede) => sede.activo);
+  const sedes = (data || []).filter((sede) => sede.activo !== false);
 
   return (
     <>
@@ -44,6 +45,12 @@ export default function SedesPage() {
             {[0, 1, 2].map((item) => (
               <div key={item} className="h-80 animate-pulse border border-ink/15 bg-sand" />
             ))}
+          </div>
+        ) : isError ? (
+          <div className="poster-card flex flex-col items-center gap-4 p-8 text-center">
+            <h2 className="font-display text-3xl uppercase text-primary">No pudimos cargar las sedes</h2>
+            <p className="max-w-lg font-editorial text-base text-ink/60">Revisa tu conexión e inténtalo de nuevo. Si el problema continúa, escríbenos para ayudarte.</p>
+            <button type="button" className="btn-outline" onClick={() => refetch()}>Reintentar</button>
           </div>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -80,7 +87,7 @@ export default function SedesPage() {
           </div>
         )}
 
-        {!isLoading && sedes.length === 0 && (
+        {!isLoading && !isError && sedes.length === 0 && (
           <div className="poster-card flex flex-col items-center gap-5 p-8 text-center">
             <Image src="/identity/penguin.png" alt="" width={90} height={128} className="h-28 w-auto" />
             <div>
@@ -91,7 +98,10 @@ export default function SedesPage() {
         )}
 
         <div className="mt-10 flex flex-col gap-4 border-t border-ink/15 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-editorial text-lg text-ink/65">¿Quieres sumarte al colectivo?</p>
+          <div className="flex items-center gap-3">
+            <DualMark size="sm" />
+            <p className="font-editorial text-lg text-ink/65">¿Quieres sumarte al colectivo?</p>
+          </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/registro" className="btn-outline">Soy estudiante</Link>
             <Link href="/registro-tutor" className="btn-primary">Soy tutor voluntario</Link>

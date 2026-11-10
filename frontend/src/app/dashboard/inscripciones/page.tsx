@@ -10,7 +10,17 @@ import { DataTable, type Column } from "@/components/shared/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 
-interface Enrollment { id: number; student_id: number; grupo_id: number; estado: string; payment_status: string; }
+interface Enrollment {
+  id: number;
+  student_id: number;
+  grupo_id: number;
+  estado: string;
+  payment_status: string;
+  student_name: string | null;
+  student_matricula: string | null;
+  grupo_name: string | null;
+  materia_name: string | null;
+}
 
 export default function InscripcionesPage() {
   const token = useAuthStore((s) => s.token);
@@ -30,8 +40,11 @@ export default function InscripcionesPage() {
       header: "Alumno / grupo",
       render: (item) => (
         <div>
-          <p className="font-semibold text-ink">Alumno {item.student_id}</p>
-          <p className="text-xs text-ink/50">Grupo {item.grupo_id}</p>
+          <p className="font-semibold text-ink">{item.student_name || `Alumno #${item.student_id}`}</p>
+          <p className="text-xs text-ink/50">
+            {item.student_matricula ? `${item.student_matricula} · ` : ""}
+            {item.materia_name || "Materia sin nombre"} · {item.grupo_name || `Grupo #${item.grupo_id}`}
+          </p>
         </div>
       ),
     },

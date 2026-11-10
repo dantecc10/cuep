@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { DualMark } from "@/components/layout/dual-mark";
 import { useAuthStore } from "@/store/auth";
 
 type Acceso = { href: string; label: string; description: string; icon: LucideIcon };
@@ -98,7 +99,7 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 flex items-end justify-between gap-3">
               <Image src="/identity/penguin.png" alt="Pingüino del CUEP" width={105} height={149} className="h-28 w-auto" />
-              <Image src="/identity/heart.png" alt="" width={44} height={44} className="h-10 w-10 opacity-80" />
+              <DualMark size="sm" />
             </div>
           </div>
         </section>

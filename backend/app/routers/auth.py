@@ -8,7 +8,7 @@ from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.student import Student
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
-from app.schemas.user import UserRead
+from app.schemas.user import UserRead, UserProfileUpdate
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -162,4 +162,28 @@ async def refresh(payload: RefreshRequest):
 
 @router.get("/me", response_model=UserRead)
 async def me(user: User = Depends(get_current_user)):
+    return user
+
+
+@router.put("/me/profile", response_model=UserRead)
+async def update_my_profile(
+    payload: UserProfileUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
+    for field in (
+        "nombre",
+        "apellido_paterno",
+        "apellido_materno",
+        "telefono",
+        "biografia_md",
+        "foto_url",
+        "carga_max_horas",
+        "area_principal",
+    ):
+        value = getattr(payload, field, None)
+        if value is not None:
+            setattr(user, field, value)
+    await db.flush()
+    await db.refresh(user)
     return user

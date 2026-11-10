@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { DualMark } from "@/components/layout/dual-mark";
 
 const links = [
   { href: "/#colectivo", label: "El colectivo" },
@@ -13,9 +13,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b-[1.5px] border-ink bg-cream/95 backdrop-blur">
       <div className="container-site flex items-center justify-between gap-4 py-3">
         <Link href="/" className="group flex items-center gap-3 text-ink">
-          <span className="grid h-11 w-11 -rotate-3 place-items-center border-[1.5px] border-ink bg-primary shadow-[3px_3px_0_#171313] transition-transform group-hover:rotate-0">
-            <Image src="/identity/heart.png" alt="" width={28} height={28} className="h-7 w-7" />
-          </span>
+          <DualMark size="md" />
           <span className="leading-none">
             <span className="block font-display text-2xl uppercase tracking-wide text-primary">CUEP</span>
             <span className="mt-1 hidden font-mono text-[0.55rem] font-semibold uppercase tracking-[0.16em] text-ink/70 sm:block">

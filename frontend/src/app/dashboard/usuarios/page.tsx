@@ -3,7 +3,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
-import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable, type Column } from "@/components/shared/data-table";
@@ -11,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 
 interface User { id: number; email: string; nombre: string; apellido_paterno: string; role: string; sede_id: number | null; es_tutor: boolean; is_active: boolean; }
+interface Sede { id: number; nombre: string; ciudad: string | null; }
 
 const roleLabels: Record<string, string> = {
   admin: "Admin",
@@ -25,6 +25,7 @@ export default function UsuariosPage() {
   const headers = { Authorization: `Bearer ${token}` };
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery<User[]>({ queryKey: ["usuarios"], queryFn: async () => (await api.get("/usuarios", { headers })).data });
+  const { data: sedes } = useQuery<Sede[]>({ queryKey: ["sedes"], queryFn: async () => (await api.get("/sedes", { headers })).data });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: number; payload: Record<string, unknown> }) => api.patch(`/usuarios/${id}`, payload, { headers }),
@@ -62,13 +63,17 @@ export default function UsuariosPage() {
       key: "sede_id",
       header: "Sede",
       render: (item) => (
-        <Input
-          className="h-8 w-20"
-          type="number"
-          defaultValue={item.sede_id ?? ""}
+        <select
           aria-label={`Sede de ${item.nombre}`}
-          onBlur={(e) => updateMutation.mutate({ id: item.id, payload: { sede_id: e.target.value ? Number(e.target.value) : null } })}
-        />
+          className="h-8 max-w-44 border border-ink/30 bg-surface px-2 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.06em] text-ink outline-none focus-visible:border-primary"
+          value={item.sede_id ?? ""}
+          onChange={(e) => updateMutation.mutate({ id: item.id, payload: { sede_id: e.target.value ? Number(e.target.value) : null } })}
+        >
+          <option value="">Sin sede</option>
+          {(sedes || []).map((sede) => (
+            <option key={sede.id} value={sede.id}>{sede.nombre}</option>
+          ))}
+        </select>
       ),
     },
     {

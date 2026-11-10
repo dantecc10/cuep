@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { DualMark } from "@/components/layout/dual-mark";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -50,7 +51,10 @@ export default function RegistroTutorPage() {
           </div>
           <div className="mt-6 flex items-end justify-between gap-4">
             <Image src="/identity/penguin.png" alt="Pingüino del CUEP" width={130} height={184} className="h-32 w-auto" />
-            <span className="type-stamp text-yellow">Tutoría voluntaria</span>
+            <div className="flex flex-col items-end gap-3">
+              <DualMark variant="dark" size="sm" />
+              <span className="type-stamp text-yellow">Tutoría voluntaria</span>
+            </div>
           </div>
         </section>
 

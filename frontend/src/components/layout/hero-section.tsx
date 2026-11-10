@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { DualMark } from "@/components/layout/dual-mark";
 
 export function HeroSection() {
   return (
@@ -40,7 +41,7 @@ export function HeroSection() {
                   Nadie se forma solo. Aprender también es organizarse.
                 </p>
               </div>
-              <Image src="/identity/heart.png" alt="" width={52} height={52} className="h-12 w-12 shrink-0" />
+              <DualMark size="md" />
             </div>
             <div className="mt-6 flex items-end justify-between gap-4 border-t border-ink/15 pt-5">
               <Image

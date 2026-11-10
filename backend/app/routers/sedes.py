@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.core.database import get_async_db
-from app.core.dependencies import require_role, get_current_user, can_manage_sede
+from app.core.dependencies import require_role, get_current_user, get_current_user_optional, can_manage_sede
 from app.models.sede import Sede, Grupo
 from app.models.user import User
 from app.models.corrida import CorridaHorario
@@ -22,12 +22,12 @@ router = APIRouter(prefix="/sedes", tags=["sedes"])
 
 
 @router.get("", response_model=list[SedeRead])
-async def list_sedes(include_deleted: bool = Query(default=False), include_inactive: bool = Query(default=False), db: AsyncSession = Depends(get_async_db), user: User | None = Depends(get_current_user)):
+async def list_sedes(include_deleted: bool = Query(default=False), include_inactive: bool = Query(default=False), db: AsyncSession = Depends(get_async_db), user: User | None = Depends(get_current_user_optional)):
     stmt = select(Sede)
     if not include_deleted or (user is None or user.role != "admin"):
         stmt = stmt.where(Sede.deleted_at.is_(None))
     if not include_inactive or (user is None or user.role != "admin"):
-        stmt = stmt.where(Sede.activo == True)  # noqa: E712
+        stmt = stmt.where(Sede.activo.isnot(False))
     result = await db.execute(stmt)
     return result.scalars().all()
 

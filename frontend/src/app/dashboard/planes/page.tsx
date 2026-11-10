@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface Plan { id: number; nombre: string; nivel: string; area: string | null; descripcion: string | null; }
-interface Materia { id: number; nombre: string; nivel: string; area: string; }
+interface Materia { id: number; nombre: string; nivel: string; area: string; descripcion?: string | null; }
 
 export default function PlanesPage() {
   const token = useAuthStore((s) => s.token);
@@ -21,6 +21,7 @@ export default function PlanesPage() {
   const [form, setForm] = useState({ nombre: "", nivel: "PREPA", area: "" });
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [selectedMaterias, setSelectedMaterias] = useState<number[]>([]);
+  const [materiaForm, setMateriaForm] = useState({ nombre: "", nivel: "PREPA", area: "", descripcion: "" });
 
   const { data: planes, isLoading: loadingPlanes } = useQuery<Plan[]>({ queryKey: ["planes"], queryFn: async () => (await api.get("/planes", { headers })).data });
   const { data: materias } = useQuery<Materia[]>({ queryKey: ["materias"], queryFn: async () => (await api.get("/materias", { headers })).data });
@@ -38,6 +39,14 @@ export default function PlanesPage() {
   const setMateriasMutation = useMutation({
     mutationFn: async () => api.put(`/planes/${selectedPlan}/materias`, { materia_ids: selectedMaterias }, { headers }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["plan-materias", selectedPlan] }),
+  });
+
+  const createMateriaMutation = useMutation({
+    mutationFn: async () => api.post("/materias", materiaForm, { headers }),
+    onSuccess: () => {
+      setMateriaForm({ nombre: "", nivel: "PREPA", area: "", descripcion: "" });
+      queryClient.invalidateQueries({ queryKey: ["materias"] });
+    },
   });
 
   const planActivo = (planes || []).find((plan) => plan.id === selectedPlan);
@@ -141,6 +150,45 @@ export default function PlanesPage() {
                     );
                   })}
                 </div>
+                <details className="border border-dashed border-ink/25 bg-sand/40 p-3">
+                  <summary className="cursor-pointer font-mono text-[0.62rem] font-bold uppercase tracking-[0.08em] text-primary">
+                    ¿No está la materia? Crear una nueva
+                  </summary>
+                  <form
+                    onSubmit={(event) => { event.preventDefault(); createMateriaMutation.mutate(); }}
+                    className="mt-3 grid gap-3 sm:grid-cols-2"
+                  >
+                    <div className="space-y-1">
+                      <Label htmlFor="materia-nombre">Nombre</Label>
+                      <Input id="materia-nombre" value={materiaForm.nombre} onChange={(e) => setMateriaForm({ ...materiaForm, nombre: e.target.value })} required />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="materia-nivel">Nivel</Label>
+                      <select
+                        id="materia-nivel"
+                        className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                        value={materiaForm.nivel}
+                        onChange={(e) => setMateriaForm({ ...materiaForm, nivel: e.target.value })}
+                      >
+                        <option value="PREPA">Preparatoria</option>
+                        <option value="LICENCIATURA">Licenciatura</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="materia-area">Área</Label>
+                      <Input id="materia-area" value={materiaForm.area} onChange={(e) => setMateriaForm({ ...materiaForm, area: e.target.value })} required />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="materia-descripcion">Descripción</Label>
+                      <Input id="materia-descripcion" value={materiaForm.descripcion} onChange={(e) => setMateriaForm({ ...materiaForm, descripcion: e.target.value })} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Button type="submit" size="sm" disabled={!materiaForm.nombre || !materiaForm.area || createMateriaMutation.isPending}>
+                        {createMateriaMutation.isPending ? "Creando..." : "Crear materia"}
+                      </Button>
+                    </div>
+                  </form>
+                </details>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
                   <p className="font-mono text-[0.62rem] uppercase tracking-[0.08em] text-ink/45">{selectedMaterias.length} seleccionadas</p>
                   <Button onClick={() => setMateriasMutation.mutate()} disabled={setMateriasMutation.isPending}>Guardar materias</Button>

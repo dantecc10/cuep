@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { DualMark } from "@/components/layout/dual-mark";
 
 export function SiteFooter() {
   return (
@@ -7,7 +7,7 @@ export function SiteFooter() {
       <div className="container-site grid gap-10 py-12 md:grid-cols-[1.3fr_0.7fr_0.7fr]">
         <div>
           <div className="flex items-center gap-3">
-            <Image src="/identity/heart.png" alt="" width={42} height={42} className="h-10 w-10" />
+            <DualMark variant="dark" size="md" />
             <p className="font-display text-3xl uppercase text-yellow">CUEP</p>
           </div>
           <p className="mt-4 max-w-md font-editorial text-lg leading-relaxed text-paper-light/80">

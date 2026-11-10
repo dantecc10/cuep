@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { DualMark } from "@/components/layout/dual-mark";
 
 type NavLink = { href: string; label: string; icon: LucideIcon };
 
@@ -33,6 +34,7 @@ const linksByRole: Record<string, NavLink[]> = {
     { href: "/dashboard/planes", label: "Planes", icon: Layers },
     { href: "/dashboard/materias", label: "Materias", icon: BookOpen },
     { href: "/dashboard/usuarios", label: "Usuarios", icon: Users },
+    { href: "/mi-perfil", label: "Mi perfil", icon: UserRound },
   ],
   coordinador: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
@@ -41,6 +43,7 @@ const linksByRole: Record<string, NavLink[]> = {
     { href: "/dashboard/corridas", label: "Corridas", icon: PlayCircle },
     { href: "/dashboard/inscripciones", label: "Inscripciones", icon: ClipboardList },
     { href: "/dashboard/publicar", label: "Publicar", icon: Send },
+    { href: "/mi-perfil", label: "Mi perfil", icon: UserRound },
   ],
   subcoordinador: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
@@ -49,12 +52,14 @@ const linksByRole: Record<string, NavLink[]> = {
     { href: "/dashboard/corridas", label: "Corridas", icon: PlayCircle },
     { href: "/dashboard/inscripciones", label: "Inscripciones", icon: ClipboardList },
     { href: "/dashboard/publicar", label: "Publicar", icon: Send },
+    { href: "/mi-perfil", label: "Mi perfil", icon: UserRound },
   ],
   tutor: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
     { href: "/dashboard/disponibilidad", label: "Disponibilidad", icon: CalendarClock },
     { href: "/dashboard/materias", label: "Materias", icon: BookOpen },
     { href: "/dashboard/mi-horario", label: "Mi horario", icon: CalendarDays },
+    { href: "/mi-perfil", label: "Mi perfil", icon: UserRound },
   ],
   alumno: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
@@ -99,9 +104,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[276px] flex-col border-r-[1.5px] border-ink bg-ink text-paper-light md:flex">
         <div className="border-b border-paper-light/15 p-5">
           <Link href="/dashboard" className="group flex items-center gap-3">
-            <span className="grid h-12 w-12 -rotate-3 place-items-center border-[1.5px] border-yellow bg-primary shadow-[3px_3px_0_#E8B83E] transition-transform group-hover:rotate-0">
-              <Image src="/identity/heart.png" alt="" width={30} height={30} className="h-7 w-7" />
-            </span>
+            <DualMark variant="dark" size="md" />
             <span>
               <span className="block font-display text-3xl uppercase leading-none text-yellow">CUEP</span>
               <span className="mt-1 block font-mono text-[0.55rem] uppercase tracking-[0.16em] text-paper-light/55">
@@ -163,9 +166,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
         <header className="sticky top-0 z-30 border-b-[1.5px] border-ink bg-cream/95 backdrop-blur md:hidden">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="grid h-9 w-9 -rotate-3 place-items-center border border-ink bg-primary shadow-[2px_2px_0_#171313]">
-                <Image src="/identity/heart.png" alt="" width={22} height={22} className="h-5 w-5" />
-              </span>
+              <DualMark size="sm" />
               <span className="font-display text-2xl uppercase leading-none text-primary">CUEP</span>
             </Link>
             <div className="flex items-center gap-2">

@@ -13,6 +13,10 @@ class EnrollmentRead(BaseModel):
     grupo_id: int
     estado: str
     payment_status: str
+    student_name: Optional[str] = None
+    student_matricula: Optional[str] = None
+    grupo_name: Optional[str] = None
+    materia_name: Optional[str] = None
 
 
 class EnrollmentStatusUpdate(BaseModel):

@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/shared/page-header";
+import { FotoUploader } from "@/components/shared/foto-uploader";
 
-const grupos = [
+const studentGroups = [
   {
     titulo: "Datos personales",
     descripcion: "Tu nombre completo como aparecerá en la credencial.",
@@ -50,47 +51,124 @@ const grupos = [
     fields: [
       ["donation_willingness", "Donativo"],
       ["preferred_course_location", "Sede preferida"],
-      ["photo_url", "URL de fotografía"],
       ["notes", "Notas"],
     ],
   },
 ] as const;
 
+const staffGroups = [
+  {
+    titulo: "Datos personales",
+    descripcion: "La información que aparece en tu perfil del colectivo.",
+    fields: [
+      ["nombre", "Nombre"],
+      ["apellido_paterno", "Apellido paterno"],
+      ["apellido_materno", "Apellido materno"],
+      ["telefono", "Teléfono"],
+      ["area_principal", "Área principal"],
+      ["carga_max_horas", "Carga máxima de horas"],
+    ],
+  },
+] as const;
+
+const roleLabels: Record<string, string> = {
+  admin: "Administración",
+  coordinador: "Coordinación",
+  subcoordinador: "Subcoordinación",
+  tutor: "Tutoría",
+  alumno: "Estudiante",
+};
+
 export default function MiPerfilPage() {
   const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
+  const role = user?.role;
+  const isStudent = role === "alumno";
+  const photoKey = isStudent ? "photo_url" : "foto_url";
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!token || !role) return;
+    let cancelled = false;
+
     (async () => {
-      const h = { Authorization: `Bearer ${token}` };
-      const res = await api.get("/students/me", { headers: h });
-      setForm(res.data);
+      setLoading(true);
+      setMsg("");
+      try {
+        const headers = { Authorization: `Bearer ${token}` };
+        const res = await api.get(isStudent ? "/students/me" : "/auth/me", { headers });
+        if (!cancelled) setForm(res.data);
+      } catch {
+        if (!cancelled) setMsg("No pudimos cargar tu perfil. Intenta recargar la página.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
-  }, [token]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, role, isStudent]);
 
   async function save() {
     setSaving(true);
     setMsg("");
     try {
-      await api.put("/students/me", form, { headers: { Authorization: `Bearer ${token}` } });
+      const headers = { Authorization: `Bearer ${token}` };
+      const endpoint = isStudent ? "/students/me" : "/auth/me/profile";
+      await api.put(endpoint, form, { headers });
       setMsg("Perfil actualizado correctamente.");
     } catch {
-      setMsg("No pudimos guardar los cambios. Inténtalo de nuevo.");
+      setMsg("No pudimos guardar los cambios. Revisa los datos e inténtalo de nuevo.");
     } finally {
       setSaving(false);
     }
   }
 
+  function setField(key: string, raw: string) {
+    setForm((current) => ({
+      ...current,
+      [key]: key === "carga_max_horas" ? (raw === "" ? null : Number(raw)) : raw,
+    }));
+  }
+
+  if (loading || !role) {
+    return (
+      <AppShell title="Mi perfil">
+        <div className="space-y-4">
+          <PageHeader title="Mi perfil" description="Cargando tu información..." />
+          <div className="h-48 animate-pulse border border-ink/15 bg-sand" />
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell title="Mi perfil">
       <div className="space-y-6">
-        <PageHeader title="Mi perfil" description="Completa tus datos para que el colectivo pueda acompañarte y organizar tu participación." />
+        <PageHeader title="Mi perfil" description="Actualiza tus datos, tu fotografía y la información que compartes con el colectivo." />
 
         <div className="grid gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
           <div className="space-y-5">
-            {grupos.map((grupo) => (
+            <section className="poster-card p-5 sm:p-6">
+              <div className="border-b border-ink/15 pb-3">
+                <h2 className="font-display text-2xl uppercase text-primary">Fotografía</h2>
+                <p className="mt-1 text-sm text-ink/55">Puedes subir una imagen o usar una URL pública si el almacenamiento no está configurado.</p>
+              </div>
+              <div className="mt-4">
+                <FotoUploader
+                  value={String(form[photoKey] ?? "")}
+                  onChange={(url) => setForm((current) => ({ ...current, [photoKey]: url }))}
+                  label="Fotografía de perfil"
+                  id="perfil-foto"
+                />
+              </div>
+            </section>
+
+            {(isStudent ? studentGroups : staffGroups).map((grupo) => (
               <section key={grupo.titulo} className="poster-card p-5 sm:p-6">
                 <div className="border-b border-ink/15 pb-3">
                   <h2 className="font-display text-2xl uppercase text-primary">{grupo.titulo}</h2>
@@ -100,47 +178,73 @@ export default function MiPerfilPage() {
                   {grupo.fields.map(([key, label]) => (
                     <div key={key} className="space-y-2">
                       <Label htmlFor={`perfil-${key}`}>{label}</Label>
-                      <Input id={`perfil-${key}`} value={String(form[key] ?? "")} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
+                      <Input
+                        id={`perfil-${key}`}
+                        type={key === "carga_max_horas" ? "number" : "text"}
+                         min={key === "carga_max_horas" ? 0 : undefined}
+                        value={String(form[key] ?? "")}
+                        onChange={(e) => setField(key, e.target.value)}
+                      />
                     </div>
                   ))}
                 </div>
               </section>
             ))}
 
-            <section className="poster-card p-5 sm:p-6">
-              <div className="border-b border-ink/15 pb-3">
-                <h2 className="font-display text-2xl uppercase text-primary">Datos de acompañamiento</h2>
-                <p className="mt-1 text-sm text-ink/55">Estas respuestas nos ayudan a ubicarte mejor en el colectivo.</p>
-              </div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="diagnostic_exam">Examen diagnóstico</Label>
-                  <select
-                    id="diagnostic_exam"
-                    className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                    value={String(form.diagnostic_exam ?? "")}
-                    onChange={(e) => setForm({ ...form, diagnostic_exam: e.target.value === "" ? null : e.target.value === "true" })}
-                  >
-                    <option value="">Sin especificar</option>
-                    <option value="true">Sí</option>
-                    <option value="false">No</option>
-                  </select>
+            {!isStudent && (
+              <section className="poster-card p-5 sm:p-6">
+                <div className="border-b border-ink/15 pb-3">
+                  <h2 className="font-display text-2xl uppercase text-primary">Sobre ti</h2>
+                  <p className="mt-1 text-sm text-ink/55">Una breve presentación para el equipo del colectivo.</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="presencial_consent">Consentimiento presencial</Label>
-                  <select
-                    id="presencial_consent"
-                    className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                    value={String(form.presencial_consent ?? "")}
-                    onChange={(e) => setForm({ ...form, presencial_consent: e.target.value === "" ? null : e.target.value === "true" })}
-                  >
-                    <option value="">Sin especificar</option>
-                    <option value="true">Sí</option>
-                    <option value="false">No</option>
-                  </select>
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor="perfil-biografia">Biografía</Label>
+                  <textarea
+                    id="perfil-biografia"
+                    className="min-h-32 w-full border border-ink/30 bg-surface px-3 py-2 text-sm text-ink outline-none focus-visible:border-primary"
+                    value={String(form.biografia_md ?? "")}
+                    onChange={(e) => setField("biografia_md", e.target.value)}
+                  />
                 </div>
-              </div>
-            </section>
+              </section>
+            )}
+
+            {isStudent && (
+              <section className="poster-card p-5 sm:p-6">
+                <div className="border-b border-ink/15 pb-3">
+                  <h2 className="font-display text-2xl uppercase text-primary">Datos de acompañamiento</h2>
+                  <p className="mt-1 text-sm text-ink/55">Estas respuestas nos ayudan a ubicarte mejor en el colectivo.</p>
+                </div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="diagnostic_exam">Examen diagnóstico</Label>
+                    <select
+                      id="diagnostic_exam"
+                      className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                      value={String(form.diagnostic_exam ?? "")}
+                      onChange={(e) => setForm({ ...form, diagnostic_exam: e.target.value === "" ? null : e.target.value === "true" })}
+                    >
+                      <option value="">Sin especificar</option>
+                      <option value="true">Sí</option>
+                      <option value="false">No</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="presencial_consent">Consentimiento presencial</Label>
+                    <select
+                      id="presencial_consent"
+                      className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                      value={String(form.presencial_consent ?? "")}
+                      onChange={(e) => setForm({ ...form, presencial_consent: e.target.value === "" ? null : e.target.value === "true" })}
+                    >
+                      <option value="">Sin especificar</option>
+                      <option value="true">Sí</option>
+                      <option value="false">No</option>
+                    </select>
+                  </div>
+                </div>
+              </section>
+            )}
 
             <div className="flex flex-wrap items-center gap-3">
               <Button onClick={save} disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</Button>
@@ -150,9 +254,20 @@ export default function MiPerfilPage() {
 
           <aside className="space-y-4 lg:sticky lg:top-6">
             <div className="poster-card poster-card--paper p-5">
-              <p className="type-label text-ink/55">Tu matrícula</p>
-              <p className="mt-2 break-all font-mono text-lg font-bold text-ink">{String(form.matricula || "Por asignar")}</p>
-              <p className="mt-3 text-xs leading-relaxed text-ink/60">La matrícula se genera automáticamente al registrarte y no puede editarse.</p>
+              {isStudent ? (
+                <>
+                  <p className="type-label text-ink/55">Tu matrícula</p>
+                  <p className="mt-2 break-all font-mono text-lg font-bold text-ink">{String(form.matricula || "Por asignar")}</p>
+                  <p className="mt-3 text-xs leading-relaxed text-ink/60">La matrícula se genera automáticamente al registrarte y no puede editarse.</p>
+                </>
+              ) : (
+                <>
+                  <p className="type-label text-ink/55">Tu rol en el colectivo</p>
+                  <p className="mt-2 font-display text-2xl uppercase text-primary">{roleLabels[role] || role}</p>
+                  <p className="mt-3 text-xs leading-relaxed text-ink/60">Área: {String(form.area_principal || "Sin especificar")}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink/60">Carga máxima: {String(form.carga_max_horas || 0)} horas</p>
+                </>
+              )}
             </div>
             <div className="poster-card flex items-end justify-between gap-3 p-5">
               <div>

@@ -63,7 +63,7 @@ JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 WORKER_API_KEY=<hex 32>
-CORS_ORIGINS=https://app.example.com
+CORS_ORIGINS=["https://app.example.com"]
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
@@ -113,7 +113,8 @@ sudo systemctl enable --now cuep-api
 cd /opt/cuep/frontend
 npm ci
 cp .env.example .env
-# NEXT_PUBLIC_API_URL=https://api.example.com/api/v1
+# Si el frontend y la API comparten dominio, usa una ruta relativa:
+# NEXT_PUBLIC_API_URL=/api/v1
 npm run build
 ```
 
@@ -240,7 +241,7 @@ cd /opt/cuep && git pull
 ./scripts/deploy.sh
 ```
 
-El script `scripts/deploy.sh` aplica migraciones, reinicia `cuep-api.service`, instala dependencias del frontend, construye Next.js y reinicia `cuep-web.service`. Si el backend usa un `.venv` dentro de `backend/`, lo activa automáticamente. Para actualizar el worker:
+El script `scripts/deploy.sh` instala dependencias del backend si existe `backend/.venv`, aplica migraciones, reinicia `cuep-api.service`, instala dependencias del frontend, carga `frontend/.env.production.local` o `.env.production` antes de construir Next.js y reinicia `cuep-web.service`. Para actualizar el worker:
 
 ```bash
 cd /opt/cuep/worker && source .venv/bin/activate && pip install -r requirements.txt
@@ -260,4 +261,4 @@ El repositorio incluye `.github/workflows/ci.yml` con:
 - **Error de migración por columnas NOT NULL**: ejecutar `alembic upgrade head` después de actualizar código.
 - **2FA no envía correo**: verificar SMTP o revisar logs; en desarrollo el código se imprime en consola.
 - **Worker no toma tareas**: verificar `WORKER_API_KEY` y `API_BASE_URL`.
-- **Frontend no conecta a API**: verificar `NEXT_PUBLIC_API_URL` y CORS.
+- **Frontend no conecta a API**: si usa el mismo dominio, verificar `NEXT_PUBLIC_API_URL=/api/v1` y el proxy de nginx; si usa otro dominio, revisar CORS.

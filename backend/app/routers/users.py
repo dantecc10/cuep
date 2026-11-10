@@ -55,18 +55,8 @@ async def update_user(user_id: int, payload: UserUpdate, db: AsyncSession = Depe
     target = await db.get(User, user_id)
     if target is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    if payload.role is not None:
-        target.role = payload.role
-    if payload.sede_id is not None:
-        target.sede_id = payload.sede_id
-    if payload.es_tutor is not None:
-        target.es_tutor = payload.es_tutor
-    if payload.is_active is not None:
-        target.is_active = payload.is_active
-    if payload.carga_max_horas is not None:
-        target.carga_max_horas = payload.carga_max_horas
-    if payload.area_principal is not None:
-        target.area_principal = payload.area_principal
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(target, field, value)
     await db.flush()
     await db.refresh(target)
     return target

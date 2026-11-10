@@ -45,7 +45,7 @@ const principios = [
 ];
 
 export default function Home() {
-  const { data: sedes } = useQuery<Sede[]>({
+  const { data: sedes, isError: sedesError, refetch: refetchSedes } = useQuery<Sede[]>({
     queryKey: ["sedes-public"],
     queryFn: async () => (await api.get("/sedes")).data,
   });
@@ -114,6 +114,15 @@ export default function Home() {
             <Link href="/sedes" className="link-arrow shrink-0 text-ink">Ver todas las sedes</Link>
           </div>
 
+          {sedesError ? (
+            <div className="poster-card flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-display text-2xl uppercase text-primary">No pudimos cargar las sedes</h3>
+                <p className="mt-1 font-editorial text-base text-ink/60">Revisa tu conexión e inténtalo de nuevo.</p>
+              </div>
+              <button type="button" className="btn-outline shrink-0" onClick={() => refetchSedes()}>Reintentar</button>
+            </div>
+          ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {sedesActivas.map((sede) => (
               <article key={sede.id} className="poster-card flex flex-col overflow-hidden">
@@ -142,6 +151,7 @@ export default function Home() {
               </p>
             )}
           </div>
+          )}
         </div>
       </PaperSection>
 

@@ -91,7 +91,12 @@ export default function MiCredencialPage() {
 
             <div className="flex items-center justify-between border-t border-ink/15 bg-sand/60 px-5 py-3">
               <p className="font-mono text-[0.55rem] uppercase tracking-[0.12em] text-ink/50">Colectivo Universitario por la Educación Popular</p>
-              <p className="font-editorial text-sm font-semibold text-primary">BUAP</p>
+              <div className="flex items-center gap-2">
+                <span className="grid h-7 w-7 rotate-6 place-items-center border border-ink bg-paper shadow-[2px_2px_0_#E8B83E]">
+                  <Image src="/identity/fist.svg" alt="" width={18} height={18} className="h-4 w-4" unoptimized />
+                </span>
+                <p className="font-editorial text-sm font-semibold text-primary">BUAP</p>
+              </div>
             </div>
           </article>
 
