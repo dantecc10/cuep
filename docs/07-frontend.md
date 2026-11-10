@@ -21,6 +21,21 @@ Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanS
 | /mi-perfil | Perfil completo del alumno | alumno |
 | /mi-credencial | Credencial con matrícula y QR | alumno |
 | /registro | Auto-registro de alumno | público |
+| /registro-tutor | Auto-registro de tutor voluntario | público |
+| /sedes | Sedes públicas con mapa e imagen | público |
+| /dashboard | Panel por rol | autenticado |
+| /dashboard/sedes | CRUD de sedes | admin |
+| /dashboard/planes | Planes de estudio | admin |
+| /dashboard/materias | Catálogo de materias | admin |
+| /dashboard/usuarios | Gestión de usuarios y roles | admin |
+| /dashboard/grupos | Grupos por sede | coord/subcoord |
+| /dashboard/tutores | Listado de tutores | coord/subcoord |
+| /dashboard/disponibilidad | Disponibilidad y materias del tutor | tutor |
+| /dashboard/corridas | Listado y creación de corridas | coord |
+| /dashboard/inscripciones | Cupos y pagos | coord/admin |
+| /dashboard/publicar | Aprobación y publicación | coord/subcoord |
+| /dashboard/mi-horario | Horario publicado del tutor | tutor |
+| /dashboard/2fa | Configuración 2FA | autenticado |
 | /mi-inscripcion | Inscripción y horario del alumno | alumno |
 
 ## Componentes clave
@@ -32,6 +47,8 @@ Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanS
 - `MateriaMultiSelect`: con nivel de preferencia.
 - `CorridaStatusBadge`: PENDIENTE/PROCESANDO/COMPLETADO/ERROR.
 - `HorarioCalendario`: vista semanal por tutor/grupo.
+- `SiteHeader`, `SiteFooter`, `HeroSection`, `PaperSection`, `PosterFrame`, `CallToAction`, `AppShell`.
+- Assets de identidad: `heart.png` (logo/favicon/emblema) y `penguin.png` (ilustración secundaria).
 - `MetricasPanel`: métricas del solver.
 
 ## API client
