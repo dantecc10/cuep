@@ -1,21 +1,47 @@
 import asyncio
 import sys
 from pathlib import Path
+
+from sqlalchemy import select
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from app.core.database import async_session_factory
 from app.core.security import get_password_hash
-from app.models.user import User
 from app.models.materia import Materia
 from app.models.sede import Sede
+from app.models.user import User
 
 
 async def main():
     async with async_session_factory() as session:
-        admin = User(email="admin@example.com", password_hash=get_password_hash("admin123"), nombre="Admin", apellido_paterno="CUEP", role="admin", es_tutor=False)
-        session.add(admin)
-        session.add(Materia(nombre="Pensamiento Matemático", nivel="PREPA", area="Exactas"))
-        session.add(Materia(nombre="Lectura y Redacción", nivel="PREPA", area="Sociales"))
-        session.add(Sede(nombre="Sede Centro"))
+        existing_admin = await session.execute(select(User).where(User.email == "admin@example.com"))
+        if existing_admin.scalar_one_or_none() is None:
+            session.add(
+                User(
+                    email="admin@example.com",
+                    password_hash=get_password_hash("admin123"),
+                    nombre="Admin",
+                    apellido_paterno="CUEP",
+                    role="admin",
+                    es_tutor=False,
+                )
+            )
+
+        for nombre, nivel, area in [
+            ("Pensamiento Matemático", "PREPA", "Exactas"),
+            ("Lectura y Redacción", "PREPA", "Sociales"),
+        ]:
+            existing_materia = await session.execute(
+                select(Materia).where(Materia.nombre == nombre, Materia.nivel == nivel)
+            )
+            if existing_materia.scalar_one_or_none() is None:
+                session.add(Materia(nombre=nombre, nivel=nivel, area=area))
+
+        existing_sede = await session.execute(select(Sede).where(Sede.nombre == "Sede Centro"))
+        if existing_sede.scalar_one_or_none() is None:
+            session.add(Sede(nombre="Sede Centro"))
+
         await session.commit()
         print("seeded")
 
