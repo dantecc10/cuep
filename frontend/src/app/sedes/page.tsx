@@ -60,7 +60,7 @@ export default function SedesPage() {
                   {sede.image_url ? (
                     <Image src={sede.image_url} alt={sede.nombre} width={520} height={300} className="h-48 w-full object-cover" />
                   ) : (
-                    <div className="flex h-48 items-center justify-center bg-sand halftone text-primary" aria-hidden="true">
+                    <div className="flex h-48 items-center justify-center bg-accent/15 halftone text-accent-deep" aria-hidden="true">
                       <Image src="/identity/heart.png" alt="" width={80} height={80} className="h-20 w-20 opacity-55" />
                     </div>
                   )}

@@ -10,7 +10,9 @@
     --color-background: #f8f0ec;
     --color-paper: #cdb38b;
     --color-paper-light: #fffdfc;
-    --color-accent: #36c6c7;
+    --color-accent: #3cb6bf;
+    --color-accent-deep: #146f78;
+    --color-accent-soft: #ddf3f4;
     --color-text: #171313;
     --color-yellow: #e8b83e;
     --color-red-bright: #e94b48;
@@ -48,11 +50,11 @@
     --secondary-foreground: 255 255 255;
     --muted: 205 179 139;
     --muted-foreground: 23 19 19;
-    --accent: 54 198 199;
+    --accent: 60 182 191;
     --accent-foreground: 23 19 19;
     --border: 169 39 48;
     --input: 169 39 48;
-    --ring: 70 17 160;
+    --ring: 20 111 120;
     --radius: 0.5rem;
   }
 
@@ -69,7 +71,7 @@
     background-color: var(--color-background);
     background-image:
       radial-gradient(circle at 12% 18%, rgba(205, 179, 139, 0.22) 0 1px, transparent 1.5px),
-      radial-gradient(circle at 78% 62%, rgba(169, 39, 48, 0.08) 0 1px, transparent 1.5px);
+      radial-gradient(circle at 78% 62%, rgba(60, 182, 191, 0.12) 0 1px, transparent 1.5px);
     background-size: 18px 18px, 26px 26px;
     color: var(--color-text);
     font-family: var(--font-body);
@@ -111,7 +113,7 @@
     letter-spacing: 0.2em;
     line-height: 1.2;
     text-transform: uppercase;
-    color: var(--color-secondary);
+    color: var(--color-accent-deep);
   }
 
   .type-kicker::before {
@@ -122,7 +124,7 @@
   }
 
   .type-kicker--light {
-    color: var(--color-yellow);
+    color: var(--color-accent);
   }
 
   .type-deck {
@@ -222,12 +224,14 @@
 
   .btn-outline {
     background: transparent;
-    color: var(--color-primary);
+    border-color: var(--color-accent-deep);
+    color: var(--color-accent-deep);
   }
 
   .btn-outline:hover {
-    background: var(--color-primary);
-    color: #fff;
+    background: var(--color-accent);
+    border-color: var(--color-text);
+    color: var(--color-text);
     transform: translate(-1px, -1px);
     box-shadow: 3px 3px 0 var(--color-text);
   }
@@ -239,7 +243,7 @@
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    outline: 3px solid var(--color-secondary);
+    outline: 3px solid var(--color-accent-deep);
     outline-offset: 3px;
   }
 

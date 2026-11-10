@@ -123,7 +123,7 @@ export default function DashboardPage() {
                   className="poster-card group flex flex-col justify-between p-5 transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#A92730]"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className="grid h-10 w-10 place-items-center border border-ink bg-sand text-primary">
+                    <span className="grid h-10 w-10 place-items-center border border-ink bg-accent/15 text-accent-deep">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <span className="font-mono text-xs font-bold text-ink/30">{String(index + 1).padStart(2, "0")}</span>
@@ -143,12 +143,12 @@ export default function DashboardPage() {
           <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
             <div>
               <p className="type-kicker type-kicker--light">Recordatorio</p>
-              <h2 className="mt-3 font-display text-3xl uppercase text-yellow">La organización sostiene el acceso</h2>
+              <h2 className="mt-3 font-display text-3xl uppercase text-accent">La organización sostiene el acceso</h2>
               <p className="mt-3 max-w-2xl font-editorial text-base leading-relaxed text-paper-light/70">
                 Cada grupo, sede y horario que coordinas abre una posibilidad real para alguien que quiere estudiar. Revisa tus módulos y mantén la información al día.
               </p>
             </div>
-            <Link href="/" className="btn-outline border-yellow text-yellow hover:bg-yellow hover:text-ink">Ver sitio público</Link>
+            <Link href="/" className="btn-outline border-accent text-accent hover:bg-accent hover:text-ink">Ver sitio público</Link>
           </div>
         </section>
       </div>

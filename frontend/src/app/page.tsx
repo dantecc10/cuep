@@ -97,7 +97,7 @@ export default function Home() {
         <div className="container-site grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <p className="type-kicker type-kicker--light">Lo que hacemos</p>
-            <h2 className="mt-4 max-w-4xl font-display text-4xl uppercase leading-[0.94] text-yellow md:text-6xl">
+            <h2 className="mt-4 max-w-4xl font-display text-4xl uppercase leading-[0.94] text-accent md:text-6xl">
               Asesorías, comunidad y organización para llegar a la universidad
             </h2>
           </div>
@@ -129,7 +129,7 @@ export default function Home() {
                 {sede.image_url ? (
                   <Image src={sede.image_url} alt={sede.nombre} width={480} height={280} className="h-44 w-full object-cover" />
                 ) : (
-                  <div className="flex h-44 items-center justify-center bg-sand halftone text-primary" aria-hidden="true">
+                  <div className="flex h-44 items-center justify-center bg-accent/15 halftone text-accent-deep" aria-hidden="true">
                     <Image src="/identity/heart.png" alt="" width={72} height={72} className="h-16 w-16 opacity-60" />
                   </div>
                 )}
@@ -205,15 +205,15 @@ export default function Home() {
             <span className="link-arrow mt-8 text-primary">Quiero asesorías</span>
           </Link>
 
-          <Link href="/registro-tutor" className="poster-card poster-card--ink group flex flex-col justify-between p-6 transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#E8B83E] sm:p-8">
+          <Link href="/registro-tutor" className="poster-card poster-card--ink group flex flex-col justify-between p-6 transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#3CB6BF] sm:p-8">
             <div>
-              <p className="type-label text-yellow">Para tutores</p>
+              <p className="type-label text-accent">Para tutores</p>
               <h3 className="mt-3 font-display text-4xl uppercase text-paper-light">Soy tutor voluntario</h3>
               <p className="mt-3 max-w-md font-editorial text-base leading-relaxed text-paper-light/75">
                 Comparte tu tiempo y tus conocimientos. Acompaña a quienes están construyendo su camino a la universidad.
               </p>
             </div>
-            <span className="link-arrow mt-8 text-yellow">Quiero acompañar</span>
+            <span className="link-arrow mt-8 text-accent">Quiero acompañar</span>
           </Link>
         </div>
 

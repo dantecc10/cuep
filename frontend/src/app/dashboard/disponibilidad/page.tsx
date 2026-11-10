@@ -152,7 +152,7 @@ export default function DisponibilidadPage() {
 
         <div className="flex flex-wrap items-center gap-3 border-t border-ink/15 pt-5">
           <Button onClick={save} disabled={saving}>{saving ? "Guardando..." : "Guardar disponibilidad"}</Button>
-          {msg && <p role="status" className="text-sm font-semibold text-secondary">{msg}</p>}
+          {msg && <p role="status" className="text-sm font-semibold text-accent-deep">{msg}</p>}
         </div>
       </div>
     </AppShell>

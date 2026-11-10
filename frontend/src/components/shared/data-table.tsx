@@ -45,7 +45,7 @@ export function DataTable<T>({ columns, data, isLoading, keyExtractor, emptyMess
           </thead>
           <tbody>
             {data.map((item) => (
-              <tr key={keyExtractor(item)} className="border-t border-ink/10 transition hover:bg-yellow/15">
+              <tr key={keyExtractor(item)} className="border-t border-ink/10 transition hover:bg-accent/10">
                 {columns.map((col) => (
                   <td key={col.key} className={`px-4 py-3 align-middle text-ink/80 ${col.className || ""}`}>
                     {col.render ? col.render(item) : String((item as Record<string, unknown>)[col.key] ?? "-")}

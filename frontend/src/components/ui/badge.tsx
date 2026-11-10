@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 const variants: Record<string, string> = {
   default: "border border-ink bg-primary text-white",
   secondary: "border border-ink/30 bg-sand text-ink",
+  accent: "border border-ink bg-accent text-ink",
   destructive: "border border-red-800 bg-red-100 text-red-800",
 };
 

@@ -13,23 +13,23 @@ export function SiteFooter() {
           <p className="mt-4 max-w-md font-editorial text-lg leading-relaxed text-paper-light/80">
             Colectivo Universitario por la Educación Popular. Construimos espacios de aprendizaje, acompañamiento y organización para aspirantes a la BUAP.
           </p>
-          <p className="mt-6 inline-flex border border-yellow/70 px-3 py-1.5 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-yellow">
+          <p className="mt-6 inline-flex border border-accent/70 px-3 py-1.5 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-accent">
             Puebla, México
           </p>
         </div>
 
         <div>
-          <p className="type-label text-yellow">El colectivo</p>
+          <p className="type-label text-accent">El colectivo</p>
           <nav className="mt-4 space-y-2.5 text-sm text-paper-light/80" aria-label="Enlaces del colectivo">
-            <p><Link href="/#colectivo" className="hover:text-yellow">Quiénes somos</Link></p>
-            <p><Link href="/sedes" className="hover:text-yellow">Sedes</Link></p>
-            <p><Link href="/#convocatorias" className="hover:text-yellow">Convocatorias</Link></p>
-            <p><Link href="/#participa" className="hover:text-yellow">Participa</Link></p>
+            <p><Link href="/#colectivo" className="hover:text-accent">Quiénes somos</Link></p>
+            <p><Link href="/sedes" className="hover:text-accent">Sedes</Link></p>
+            <p><Link href="/#convocatorias" className="hover:text-accent">Convocatorias</Link></p>
+            <p><Link href="/#participa" className="hover:text-accent">Participa</Link></p>
           </nav>
         </div>
 
         <div>
-          <p className="type-label text-yellow">Contacto</p>
+          <p className="type-label text-accent">Contacto</p>
           <div className="mt-4 space-y-2.5 text-sm text-paper-light/80">
             <p>educacionpopular@cuep.org</p>
             <p>Redes sociales del colectivo</p>

@@ -44,7 +44,7 @@ export default function LoginPage() {
         <section className="poster-card poster-card--ink flex flex-col justify-between overflow-hidden p-7 sm:p-10">
           <div>
             <p className="type-kicker type-kicker--light">Sistema interno</p>
-            <h1 className="mt-4 font-display text-5xl uppercase leading-[0.9] text-yellow md:text-6xl">
+            <h1 className="mt-4 font-display text-5xl uppercase leading-[0.9] text-accent md:text-6xl">
               Entra al colectivo
             </h1>
             <p className="mt-5 max-w-md font-editorial text-lg leading-relaxed text-paper-light/75">
@@ -55,7 +55,7 @@ export default function LoginPage() {
             <Image src="/identity/penguin.png" alt="Pingüino del CUEP" width={150} height={212} className="h-40 w-auto sm:h-48" />
             <div className="flex flex-col items-end gap-3">
               <DualMark variant="dark" size="sm" />
-              <span className="type-stamp text-yellow">Sesión segura</span>
+              <span className="type-stamp text-accent">Sesión segura</span>
             </div>
           </div>
         </section>

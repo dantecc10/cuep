@@ -37,14 +37,14 @@ export default function RegistroTutorPage() {
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <section className="poster-card poster-card--ink overflow-hidden p-7 sm:p-9">
           <p className="type-kicker type-kicker--light">Para tutores</p>
-          <h1 className="mt-4 font-display text-5xl uppercase leading-[0.9] text-yellow md:text-6xl">
+          <h1 className="mt-4 font-display text-5xl uppercase leading-[0.9] text-accent md:text-6xl">
             Comparte lo que sabes, abre una puerta
           </h1>
           <p className="mt-5 font-editorial text-lg leading-relaxed text-paper-light/75">
             El CUEP se sostiene con el tiempo y los conocimientos de tutores voluntarios. Si puedes acompañar a alguien en su camino a la BUAP, este espacio es para ti.
           </p>
           <div className="mt-8 border border-paper-light/20 bg-paper-light/5 p-4">
-            <p className="type-label text-yellow">Cómo funciona</p>
+            <p className="type-label text-accent">Cómo funciona</p>
             <p className="mt-2 text-sm leading-relaxed text-paper-light/70">
               Envías tu solicitud, el equipo de coordinación la revisa y después habilitamos tu disponibilidad y materias.
             </p>
@@ -53,7 +53,7 @@ export default function RegistroTutorPage() {
             <Image src="/identity/penguin.png" alt="Pingüino del CUEP" width={130} height={184} className="h-32 w-auto" />
             <div className="flex flex-col items-end gap-3">
               <DualMark variant="dark" size="sm" />
-              <span className="type-stamp text-yellow">Tutoría voluntaria</span>
+              <span className="type-stamp text-accent">Tutoría voluntaria</span>
             </div>
           </div>
         </section>
@@ -92,7 +92,7 @@ export default function RegistroTutorPage() {
             </div>
 
             {error && <p role="alert" className="border-l-2 border-primary bg-primary/5 px-3 py-2 text-sm font-semibold text-primary">{error}</p>}
-            {msg && <p role="status" className="border-l-2 border-secondary bg-secondary/5 px-3 py-2 text-sm font-semibold text-secondary">{msg}</p>}
+            {msg && <p role="status" className="border-l-2 border-accent-deep bg-accent-soft px-3 py-2 text-sm font-semibold text-accent-deep">{msg}</p>}
 
             <Button type="submit" className="h-10 w-full" disabled={loading}>
               {loading ? "Enviando..." : "Enviar solicitud"}

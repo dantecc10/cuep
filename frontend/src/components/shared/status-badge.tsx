@@ -15,6 +15,6 @@ const labels: Record<string, string> = {
 
 export function StatusBadge({ status }: { status: string }) {
   const label = labels[status] || status;
-  const variant = status === "ERROR" || status === "cancelada" ? "destructive" : status === "COMPLETADO" || status === "confirmada" || status === "PUBLICADA" ? "default" : "secondary";
-  return <Badge variant={variant as "default" | "secondary" | "destructive"}>{label}</Badge>;
+  const variant = status === "ERROR" || status === "cancelada" ? "destructive" : status === "COMPLETADO" || status === "confirmada" || status === "PUBLICADA" ? "accent" : "secondary";
+  return <Badge variant={variant as "default" | "secondary" | "accent" | "destructive"}>{label}</Badge>;
 }

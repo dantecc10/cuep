@@ -5,7 +5,7 @@ import { DualMark } from "@/components/layout/dual-mark";
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden border-b-[1.5px] border-ink bg-cream">
-      <div className="pointer-events-none absolute -right-24 top-10 hidden h-72 w-72 rounded-full bg-yellow/30 blur-3xl md:block" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-24 top-10 hidden h-72 w-72 rounded-full bg-accent/25 blur-3xl md:block" aria-hidden="true" />
       <div className="container-site relative grid items-center gap-10 py-14 md:grid-cols-[1.12fr_0.88fr] md:py-20 lg:py-24">
         <div className="animate-rise">
           <p className="type-kicker">Colectivo Universitario por la Educación Popular</p>
@@ -31,7 +31,7 @@ export function HeroSection() {
         </div>
 
         <div className="relative mx-auto w-full max-w-md animate-rise-delayed lg:max-w-lg">
-          <div className="absolute -left-4 top-8 hidden h-24 w-24 rotate-6 border-[1.5px] border-ink bg-accent/80 md:block" aria-hidden="true" />
+          <div className="absolute -left-4 top-8 hidden h-24 w-24 rotate-6 border-[1.5px] border-ink bg-accent md:block" aria-hidden="true" />
           <div className="absolute -right-4 bottom-8 hidden h-20 w-20 -rotate-6 border-[1.5px] border-ink bg-yellow md:block" aria-hidden="true" />
           <div className="relative border-[1.5px] border-ink bg-surface p-5 shadow-[8px_8px_0_#A92730] sm:p-7">
             <div className="flex items-start justify-between gap-4">

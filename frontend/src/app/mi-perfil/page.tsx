@@ -248,7 +248,7 @@ export default function MiPerfilPage() {
 
             <div className="flex flex-wrap items-center gap-3">
               <Button onClick={save} disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</Button>
-              {msg && <p role="status" className="text-sm font-semibold text-secondary">{msg}</p>}
+              {msg && <p role="status" className="text-sm font-semibold text-accent-deep">{msg}</p>}
             </div>
           </div>
 

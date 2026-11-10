@@ -126,8 +126,8 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
                 aria-current={active ? "page" : undefined}
                 className={`group flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm font-semibold transition ${
                   active
-                    ? "border-yellow bg-yellow text-ink shadow-[3px_3px_0_#A92730]"
-                    : "text-paper-light/70 hover:border-paper-light/20 hover:bg-paper-light/5 hover:text-paper-light"
+                    ? "border-accent bg-accent text-ink shadow-[3px_3px_0_#A92730]"
+                    : "text-paper-light/70 hover:border-accent/40 hover:bg-accent/10 hover:text-paper-light"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -139,7 +139,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
 
         <div className="border-t border-paper-light/15 p-3">
           <div className="flex items-center gap-3 border border-paper-light/15 bg-paper-light/5 p-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary font-mono text-xs font-bold text-white">{initials}</span>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent font-mono text-xs font-bold text-ink">{initials}</span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-paper-light">{user?.nombre || "Usuario CUEP"}</p>
               <p className="truncate font-mono text-[0.58rem] uppercase tracking-[0.1em] text-paper-light/45">{user?.email || roleLabels[user?.role || ""] || "Sesión"}</p>
@@ -147,7 +147,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
           </div>
           <Image src="/identity/penguin.png" alt="" width={86} height={122} className="mx-auto mt-4 h-24 w-auto opacity-90" />
           <div className="mt-3 flex gap-2">
-            <Link href="/" className="flex flex-1 items-center justify-center border border-paper-light/20 px-2 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-paper-light/70 transition hover:border-yellow hover:text-yellow">
+            <Link href="/" className="flex flex-1 items-center justify-center border border-paper-light/20 px-2 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-paper-light/70 transition hover:border-accent hover:text-accent">
               Sitio
             </Link>
             <button
@@ -186,7 +186,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
                   href={link.href}
                   aria-current={active ? "page" : undefined}
                   className={`flex shrink-0 items-center gap-1.5 border px-2.5 py-1.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.06em] ${
-                    active ? "border-ink bg-yellow text-ink" : "border-ink/15 text-ink/65"
+                    active ? "border-ink bg-accent text-ink" : "border-ink/15 text-ink/65"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -204,7 +204,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
             <span className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-ink/65">{displayTitle}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="type-stamp text-primary">{roleLabels[user?.role || ""] || "Sesión"}</span>
+            <span className="type-stamp text-accent-deep">{roleLabels[user?.role || ""] || "Sesión"}</span>
             <span className="font-mono text-[0.58rem] uppercase tracking-[0.1em] text-ink/40">CUEP · Sistema interno</span>
           </div>
         </div>
