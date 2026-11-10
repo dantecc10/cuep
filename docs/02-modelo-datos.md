@@ -161,3 +161,24 @@ Los campos `waitlist_enabled`, `payment_enabled`, `payment_amount` y `payment_cu
 
 ### Grupos
 `grupos.min_alumnos` permite definir un mínimo para abrir un grupo en corridas (configurable, por defecto 0).
+
+## Sedes y matrícula
+
+### sedes (campos adicionales)
+| Col | Tipo / Constraint |
+|---|---|
+| codigo | VARCHAR(1) UNIQUE |
+
+### students (perfil completo del aspirante)
+Incluye los campos del formulario de inscripción:
+`first_name`, `paternal_last_name`, `maternal_last_name`, `full_name`, `email`, `preferred_sede_id`, `municipality_state`, `colony`, `address`, `phone`, `emergency_contact_raw`, `emergency_contact_name`, `emergency_contact_phone`, `high_school_type`, `exam_attempts`, `desired_degree`, `study_area`, `diagnostic_exam`, `donation_willingness`, `presencial_consent`, `credential_collected`, `preferred_course_location`, `photo_url`, `folio`, `matricula`, `form_submitted_at`, `notes`.
+
+`user_id` y `sede_id` son nullable para aspirantes importados sin cuenta o sin sede asignada.
+
+### Regla de matrícula
+Formato: `{codigo_sede}{P|L}{folio:04d}{iniciales}`.
+- `P` = Prepa, `L` = Licenciatura.
+- Folio global de 4 dígitos.
+- Iniciales: primer carácter del nombre, apellido paterno y apellido materno.
+- Si falta apellido materno, la tercera inicial es `X`.
+- La matrícula es única y no editable.

@@ -18,6 +18,8 @@ Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanS
 | /corridas/nueva | Solicitar | coord |
 | /corridas/:id | Resultado | coord/tutor |
 | /mi-horario | Asignación tutor | tutor |
+| /mi-perfil | Perfil completo del alumno | alumno |
+| /mi-credencial | Credencial con matrícula y QR | alumno |
 | /registro | Auto-registro de alumno | público |
 | /mi-inscripcion | Inscripción y horario del alumno | alumno |
 

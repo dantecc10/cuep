@@ -5,6 +5,7 @@ from typing import Optional
 class SedeCreate(BaseModel):
     nombre: str
     ciudad: Optional[str] = None
+    codigo: str
 
 
 class SedeRead(BaseModel):
@@ -12,6 +13,7 @@ class SedeRead(BaseModel):
     id: int
     nombre: str
     ciudad: Optional[str] = None
+    codigo: Optional[str] = None
     waitlist_enabled: bool = True
     payment_enabled: bool = False
     payment_amount: float = 0

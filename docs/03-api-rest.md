@@ -84,3 +84,14 @@ Base URL: `https://<host>/api/v1`. Formato JSON. Auth: Bearer JWT (usuarios) y `
 - `GET /enrollments?grupo_id=&estado=`
 - `PATCH /enrollments/{id}` body: `{ estado, payment_status }`
 - `PUT /sedes/{id}/enrollment-settings` body: `{ waitlist_enabled, payment_enabled, payment_amount, payment_currency }`
+
+## Perfil completo del estudiante
+
+- `POST /auth/register` acepta campos básicos y extendidos del aspirante.
+- `GET /students/me` devuelve el perfil completo, incluyendo `matricula`.
+- `PUT /students/me` permite actualizar campos del perfil, excepto `matricula` y `folio`.
+- `GET /mi-credencial` (frontend) muestra la matrícula y su código QR.
+
+## Sedes
+
+- `POST /sedes` y `PUT /sedes/{id}` aceptan `codigo` (carácter único de la sede).

@@ -10,6 +10,7 @@ class Sede(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     ciudad: Mapped[str | None] = mapped_column(String(100))
+    codigo: Mapped[str | None] = mapped_column(String(1), unique=True)
     waitlist_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     payment_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     payment_amount: Mapped[float] = mapped_column(Float, default=0)

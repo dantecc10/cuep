@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_async_db
 from app.core.security import verify_password, create_access_token, decode_token, get_password_hash
+from app.services.matricula import generar_matricula
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.student import Student
@@ -72,10 +73,52 @@ async def register(payload: dict, db: AsyncSession = Depends(get_async_db)):
     )
     db.add(user)
     await db.flush()
-    student = Student(user_id=user.id, sede_id=data.sede_id, nivel=data.nivel, area=data.area, estatus="activo")
+
+    sede = await db.get(Sede, data.sede_id)
+    if sede is None:
+        raise HTTPException(status_code=404, detail="Sede no encontrada")
+
+    first_name = data.first_name or data.nombre
+    paternal = data.paternal_last_name or data.apellido_paterno
+    maternal = data.maternal_last_name or data.apellido_materno
+    full_name = data.full_name or " ".join(part for part in [first_name, paternal, maternal] if part)
+
+    student = Student(
+        user_id=user.id,
+        email=data.email,
+        sede_id=data.sede_id,
+        nivel=data.nivel,
+        area=data.area,
+        estatus="activo",
+        first_name=first_name,
+        paternal_last_name=paternal,
+        maternal_last_name=maternal,
+        full_name=full_name,
+        address=data.address,
+        colony=data.colony,
+        municipality_state=data.municipality_state,
+        phone=data.telefono,
+        emergency_contact_raw=data.emergency_contact_raw,
+        emergency_contact_name=data.emergency_contact_name,
+        emergency_contact_phone=data.emergency_contact_phone,
+        high_school_type=data.high_school_type,
+        exam_attempts=data.exam_attempts,
+        desired_degree=data.desired_degree,
+        study_area=data.study_area or data.area,
+        diagnostic_exam=data.diagnostic_exam,
+        donation_willingness=data.donation_willingness,
+        presencial_consent=data.presencial_consent,
+        credential_collected=data.credential_collected,
+        preferred_sede_id=data.preferred_sede_id,
+        preferred_course_location=data.preferred_course_location,
+        photo_url=data.photo_url,
+        notes=data.notes,
+    )
     db.add(student)
     await db.flush()
-    return {"id": user.id, "email": user.email, "role": user.role}
+    await generar_matricula(db, student, sede)
+    await db.flush()
+    return {"id": user.id, "email": user.email, "role": user.role, "matricula": student.matricula}
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(payload: RefreshRequest):

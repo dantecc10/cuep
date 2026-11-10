@@ -38,6 +38,8 @@ const linksByRole: Record<string, { href: string; label: string }[]> = {
   alumno: [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/mi-inscripcion", label: "Mi inscripción" },
+    { href: "/mi-perfil", label: "Mi perfil" },
+    { href: "/mi-credencial", label: "Mi credencial" },
     { href: "/mi-horario", label: "Mi horario" },
   ],
 };

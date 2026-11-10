@@ -86,14 +86,10 @@ async def get_my_student(user: User = Depends(get_current_user), db: AsyncSessio
 @router.put("/students/me", response_model=StudentRead)
 async def update_my_student(payload: StudentUpdate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
     student = await _get_student(db, user)
-    if payload.sede_id is not None:
-        student.sede_id = payload.sede_id
-    if payload.nivel is not None:
-        student.nivel = payload.nivel
-    if payload.area is not None:
-        student.area = payload.area
-    if payload.estatus is not None:
-        student.estatus = payload.estatus
+    for field in ["sede_id", "preferred_sede_id", "nivel", "area", "estatus", "first_name", "paternal_last_name", "maternal_last_name", "full_name", "address", "colony", "municipality_state", "phone", "emergency_contact_raw", "emergency_contact_name", "emergency_contact_phone", "high_school_type", "exam_attempts", "desired_degree", "study_area", "diagnostic_exam", "donation_willingness", "presencial_consent", "credential_collected", "preferred_course_location", "photo_url", "notes"]:
+        value = getattr(payload, field, None)
+        if value is not None:
+            setattr(student, field, value)
     await db.flush()
     await db.refresh(student)
     return student
