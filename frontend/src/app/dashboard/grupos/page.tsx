@@ -20,14 +20,19 @@ export default function GruposPage() {
   const [nombre, setNombre] = useState("");
   const [horas, setHoras] = useState(4);
   const [capacidad, setCapacidad] = useState(30);
+  const [minAlumnos, setMinAlumnos] = useState(0);
 
   const { data: sedes } = useQuery<Sede[]>({ queryKey: ["sedes"], queryFn: async () => (await api.get("/sedes", { headers })).data });
   const { data: materias } = useQuery<Materia[]>({ queryKey: ["materias"], queryFn: async () => (await api.get("/materias", { headers })).data });
   const { data: grupos } = useQuery<Grupo[]>({ queryKey: ["grupos", sedeId], queryFn: async () => (await api.get(`/sedes/${sedeId}/grupos`, { headers })).data });
 
   const createMutation = useMutation({
-    mutationFn: async () => api.post(`/sedes/${sedeId}/grupos`, { materia_id: materiaId, nombre, horas_totales: horas, capacidad }, { headers }),
+    mutationFn: async () => api.post(`/sedes/${sedeId}/grupos`, { materia_id: materiaId, nombre, horas_totales: horas, capacidad, min_alumnos: minAlumnos }, { headers }),
     onSuccess: () => { setNombre(""); queryClient.invalidateQueries({ queryKey: ["grupos", sedeId] }); },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => api.delete(`/sedes/grupos/${id}`, { headers }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["grupos", sedeId] }),
   });
 
   return (
@@ -43,13 +48,15 @@ export default function GruposPage() {
           <Input placeholder="Nombre del grupo" value={nombre} onChange={(e) => setNombre(e.target.value)} />
           <Input type="number" placeholder="Horas" value={horas} onChange={(e) => setHoras(Number(e.target.value))} />
           <Input type="number" placeholder="Capacidad" value={capacidad} onChange={(e) => setCapacidad(Number(e.target.value))} />
+          <Input type="number" placeholder="Mín. alumnos" value={minAlumnos} onChange={(e) => setMinAlumnos(Number(e.target.value))} />
           <Button onClick={() => createMutation.mutate()} disabled={!nombre}>Crear grupo</Button>
         </div>
         <div className="space-y-2">
           {(grupos || []).map((g) => (
             <div key={g.id} className="border border-primary bg-surface rounded-card p-3">
               <p className="font-semibold">{g.nombre}</p>
-              <p className="text-sm">Materia ID: {g.materia_id} — Horas: {g.horas_totales} — Capacidad: {g.capacidad}</p>
+              <p className="text-sm">Materia ID: {g.materia_id} — Horas: {g.horas_totales} — Capacidad: {g.capacidad} — Mín: {g.min_alumnos}</p>
+              <Button size="sm" variant="outline" onClick={() => { if (window.confirm("¿Eliminar grupo?")) deleteMutation.mutate(g.id); }}>Eliminar</Button>
             </div>
           ))}
         </div>
