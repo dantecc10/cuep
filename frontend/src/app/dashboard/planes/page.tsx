@@ -5,48 +5,68 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PlanFormDialog, type PlanFormValue } from "@/components/shared/plan-form-dialog";
+import { MateriaFormDialog } from "@/components/shared/materia-form-dialog";
+import { ImportDialog } from "@/components/shared/import-dialog";
 
-interface Plan { id: number; nombre: string; nivel: string; area: string | null; descripcion: string | null; }
-interface Materia { id: number; nombre: string; nivel: string; area: string; descripcion?: string | null; }
+interface Plan {
+  id: number;
+  nombre: string;
+  nivel: string;
+  area: string | null;
+  descripcion: string | null;
+  activo: boolean;
+}
+interface Materia {
+  id: number;
+  nombre: string;
+  nivel: string;
+  area: string;
+  descripcion?: string | null;
+}
+
+function toFormValue(plan: Plan): PlanFormValue {
+  return {
+    id: plan.id,
+    nombre: plan.nombre,
+    nivel: plan.nivel,
+    area: plan.area || "",
+    descripcion: plan.descripcion || "",
+    activo: plan.activo,
+  };
+}
 
 export default function PlanesPage() {
   const token = useAuthStore((s) => s.token);
   const headers = { Authorization: `Bearer ${token}` };
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ nombre: "", nivel: "PREPA", area: "" });
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [selectedMaterias, setSelectedMaterias] = useState<number[]>([]);
-  const [materiaForm, setMateriaForm] = useState({ nombre: "", nivel: "PREPA", area: "", descripcion: "" });
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<PlanFormValue | null>(null);
+  const [materiaFormOpen, setMateriaFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
-  const { data: planes, isLoading: loadingPlanes } = useQuery<Plan[]>({ queryKey: ["planes"], queryFn: async () => (await api.get("/planes", { headers })).data });
-  const { data: materias } = useQuery<Materia[]>({ queryKey: ["materias"], queryFn: async () => (await api.get("/materias", { headers })).data });
+  const { data: planes, isLoading: loadingPlanes } = useQuery<Plan[]>({
+    queryKey: ["planes"],
+    queryFn: async () => (await api.get("/planes", { headers })).data,
+  });
+  const { data: materias } = useQuery<Materia[]>({
+    queryKey: ["materias"],
+    queryFn: async () => (await api.get("/materias", { headers })).data,
+  });
   const { data: planMaterias } = useQuery<Materia[]>({
     queryKey: ["plan-materias", selectedPlan],
     queryFn: async () => (await api.get(`/planes/${selectedPlan}/materias`, { headers })).data,
     enabled: !!selectedPlan,
   });
 
-  const createMutation = useMutation({
-    mutationFn: async () => api.post("/planes", { nombre: form.nombre, nivel: form.nivel, area: form.area || null }, { headers }),
-    onSuccess: () => { setForm({ nombre: "", nivel: "PREPA", area: "" }); queryClient.invalidateQueries({ queryKey: ["planes"] }); },
-  });
-
   const setMateriasMutation = useMutation({
     mutationFn: async () => api.put(`/planes/${selectedPlan}/materias`, { materia_ids: selectedMaterias }, { headers }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["plan-materias", selectedPlan] }),
-  });
-
-  const createMateriaMutation = useMutation({
-    mutationFn: async () => api.post("/materias", materiaForm, { headers }),
-    onSuccess: () => {
-      setMateriaForm({ nombre: "", nivel: "PREPA", area: "", descripcion: "" });
-      queryClient.invalidateQueries({ queryKey: ["materias"] });
-    },
   });
 
   const planActivo = (planes || []).find((plan) => plan.id === selectedPlan);
@@ -62,37 +82,25 @@ export default function PlanesPage() {
   return (
     <AppShell title="Planes de estudio">
       <div className="space-y-6">
-        <PageHeader title="Planes de estudio" description="Organiza las materias que forman cada plan del colectivo." />
-
-        <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }} className="poster-card space-y-4 p-5 sm:p-6">
-          <div>
-            <p className="type-kicker">Nuevo plan</p>
-            <h2 className="mt-2 font-display text-3xl uppercase text-primary">Crear plan de estudios</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto] md:items-end">
-            <div className="space-y-2">
-              <Label htmlFor="plan-nombre">Nombre</Label>
-              <Input id="plan-nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="plan-nivel">Nivel</Label>
-              <select
-                id="plan-nivel"
-                className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                value={form.nivel}
-                onChange={(e) => setForm({ ...form, nivel: e.target.value })}
+        <PageHeader
+          title="Planes de estudio"
+          description="Organiza las materias que forman cada plan del colectivo."
+          actions={
+            <>
+              <Button
+                onClick={() => {
+                  setEditingPlan(null);
+                  setFormOpen(true);
+                }}
               >
-                <option value="PREPA">Preparatoria</option>
-                <option value="LICENCIATURA">Licenciatura</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="plan-area">Área</Label>
-              <Input id="plan-area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
-            </div>
-            <Button type="submit" className="h-10" disabled={!form.nombre}>Crear plan</Button>
-          </div>
-        </form>
+                Nuevo plan
+              </Button>
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                Importar CSV
+              </Button>
+            </>
+          }
+        />
 
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <section className="space-y-3">
@@ -105,19 +113,35 @@ export default function PlanesPage() {
             ) : (
               <div className="space-y-2">
                 {(planes || []).map((plan) => (
-                  <button
+                  <div
                     key={plan.id}
-                    type="button"
-                    onClick={() => setSelectedPlan(plan.id)}
-                    className={`w-full border p-4 text-left transition ${
+                    className={`border p-4 transition ${
                       selectedPlan === plan.id
                         ? "border-ink bg-yellow shadow-[3px_3px_0_#171313]"
                         : "border-ink/20 bg-surface hover:border-ink hover:bg-sand"
                     }`}
                   >
-                    <p className="type-label text-ink/45">{plan.nivel === "PREPA" ? "Preparatoria" : "Licenciatura"}{plan.area ? ` · ${plan.area}` : ""}</p>
-                    <p className="mt-1 font-display text-xl uppercase text-ink">{plan.nombre}</p>
-                  </button>
+                    <div className="flex items-start justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlan(plan.id)}
+                        className="flex-1 text-left"
+                      >
+                        <p className="type-label text-ink/45">{plan.nivel === "PREPA" ? "Preparatoria" : "Licenciatura"}{plan.area ? ` · ${plan.area}` : ""}</p>
+                        <p className="mt-1 font-display text-xl uppercase text-ink">{plan.nombre}</p>
+                      </button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingPlan(toFormValue(plan));
+                          setFormOpen(true);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -150,45 +174,14 @@ export default function PlanesPage() {
                     );
                   })}
                 </div>
-                <details className="border border-dashed border-ink/25 bg-sand/40 p-3">
-                  <summary className="cursor-pointer font-mono text-[0.62rem] font-bold uppercase tracking-[0.08em] text-primary">
-                    ¿No está la materia? Crear una nueva
-                  </summary>
-                  <form
-                    onSubmit={(event) => { event.preventDefault(); createMateriaMutation.mutate(); }}
-                    className="mt-3 grid gap-3 sm:grid-cols-2"
-                  >
-                    <div className="space-y-1">
-                      <Label htmlFor="materia-nombre">Nombre</Label>
-                      <Input id="materia-nombre" value={materiaForm.nombre} onChange={(e) => setMateriaForm({ ...materiaForm, nombre: e.target.value })} required />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="materia-nivel">Nivel</Label>
-                      <select
-                        id="materia-nivel"
-                        className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                        value={materiaForm.nivel}
-                        onChange={(e) => setMateriaForm({ ...materiaForm, nivel: e.target.value })}
-                      >
-                        <option value="PREPA">Preparatoria</option>
-                        <option value="LICENCIATURA">Licenciatura</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="materia-area">Área</Label>
-                      <Input id="materia-area" value={materiaForm.area} onChange={(e) => setMateriaForm({ ...materiaForm, area: e.target.value })} required />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="materia-descripcion">Descripción</Label>
-                      <Input id="materia-descripcion" value={materiaForm.descripcion} onChange={(e) => setMateriaForm({ ...materiaForm, descripcion: e.target.value })} />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <Button type="submit" size="sm" disabled={!materiaForm.nombre || !materiaForm.area || createMateriaMutation.isPending}>
-                        {createMateriaMutation.isPending ? "Creando..." : "Crear materia"}
-                      </Button>
-                    </div>
-                  </form>
-                </details>
+                <div className="flex flex-wrap items-center justify-between gap-3 border border-dashed border-ink/25 bg-sand/40 p-3">
+                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.08em] text-ink/50">
+                    ¿No está la materia?
+                  </p>
+                  <Button size="sm" variant="outline" onClick={() => setMateriaFormOpen(true)}>
+                    Crear nueva materia
+                  </Button>
+                </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
                   <p className="font-mono text-[0.62rem] uppercase tracking-[0.08em] text-ink/45">{selectedMaterias.length} seleccionadas</p>
                   <Button onClick={() => setMateriasMutation.mutate()} disabled={setMateriasMutation.isPending}>Guardar materias</Button>
@@ -204,6 +197,28 @@ export default function PlanesPage() {
             )}
           </section>
         </div>
+
+        <PlanFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          plan={editingPlan}
+          onSaved={() => setEditingPlan(null)}
+        />
+        <MateriaFormDialog
+          open={materiaFormOpen}
+          onOpenChange={setMateriaFormOpen}
+          materia={null}
+          onSaved={() => undefined}
+        />
+        <ImportDialog
+          entidad="planes"
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          onImported={() => {
+            queryClient.invalidateQueries({ queryKey: ["planes"] });
+            queryClient.invalidateQueries({ queryKey: ["materias"] });
+          }}
+        />
       </div>
     </AppShell>
   );

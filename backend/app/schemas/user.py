@@ -10,6 +10,10 @@ class UserCreate(BaseModel):
     apellido_materno: Optional[str] = None
     role: str = "tutor"
     es_tutor: bool = False
+    sede_id: Optional[int] = None
+    telefono: Optional[str] = None
+    area_principal: Optional[str] = None
+    carga_max_horas: int = 0
 
 
 class UserRead(BaseModel):
@@ -46,9 +50,14 @@ class TeachingUpdate(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    nombre: Optional[str] = None
+    apellido_paterno: Optional[str] = None
+    apellido_materno: Optional[str] = None
     role: Optional[str] = None
     sede_id: Optional[int] = None
     es_tutor: Optional[bool] = None
     is_active: Optional[bool] = None
+    telefono: Optional[str] = None
     carga_max_horas: Optional[int] = None
     area_principal: Optional[str] = None

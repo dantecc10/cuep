@@ -7,7 +7,7 @@ from app.core.dependencies import require_role
 from app.models.plan import PlanEstudio, plan_materias
 from app.models.materia import Materia
 from app.models.user import User
-from app.schemas.plan import PlanEstudioCreate, PlanEstudioRead, PlanMateriaUpdate
+from app.schemas.plan import PlanEstudioCreate, PlanEstudioRead, PlanEstudioUpdate, PlanMateriaUpdate
 from app.schemas.materia import MateriaRead
 
 router = APIRouter(prefix="/planes", tags=["planes"])
@@ -33,6 +33,21 @@ async def get_plan(plan_id: int, db: AsyncSession = Depends(get_async_db)):
     plan = await db.get(PlanEstudio, plan_id)
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan no encontrado")
+    return plan
+
+
+@router.put("/{plan_id}", response_model=PlanEstudioRead)
+async def update_plan(plan_id: int, payload: PlanEstudioUpdate, user: User = Depends(require_role("admin")), db: AsyncSession = Depends(get_async_db)):
+    plan = await db.get(PlanEstudio, plan_id)
+    if plan is None or plan.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Plan no encontrado")
+    changes = payload.model_dump(exclude_unset=True)
+    if "nivel" in changes and changes["nivel"] not in ("PREPA", "LICENCIATURA"):
+        raise HTTPException(status_code=422, detail="El nivel debe ser PREPA o LICENCIATURA.")
+    for field, value in changes.items():
+        setattr(plan, field, value)
+    await db.flush()
+    await db.refresh(plan)
     return plan
 
 
