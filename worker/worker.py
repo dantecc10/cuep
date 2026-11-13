@@ -1,7 +1,6 @@
 import os
 import time
 import logging
-from datetime import datetime
 from dotenv import load_dotenv
 import httpx
 from ortools.sat.python import cp_model
@@ -52,6 +51,18 @@ def solve_corrida(data: dict) -> dict:
                 s.add((d["dia"], h))
         avail_hours[t["id"]] = s
 
+    # CUEP day/range configuration. Fall back to the legacy weekdays if absent.
+    configured = data.get("horario_cuep") or []
+    day_ranges = []
+    for item in configured:
+        if not item.get("activo"):
+            continue
+        day_ranges.append((int(item["dia"]), _time_to_hour(item["inicio"]), _time_to_hour(item["fin"])))
+    if not day_ranges:
+        day_ranges = [(d, 7, 21) for d in range(1, 7)]
+    active_days = sorted({d for d, _, _ in day_ranges})
+    day_bounds = {d: (min(s for dd, s, _ in day_ranges if dd == d), max(e for dd, _, e in day_ranges if dd == d)) for d in active_days}
+
     model = cp_model.CpModel()
     # x[(g,t,d,start)] bool
     x = {}
@@ -60,8 +71,8 @@ def solve_corrida(data: dict) -> dict:
             if g["materia_id"] not in auth.get(t["id"], {}):
                 continue
             nblocks = g["horas_totales"] // g["bloque"]
-            for d in range(1, 7):
-                for start in range(7, 21 - g["bloque"]):
+            for d, day_start, day_end in day_ranges:
+                for start in range(day_start, day_end - g["bloque"] + 1):
                     # check availability for all hours of block
                     ok = True
                     for h in range(start, start + g["bloque"]):
@@ -76,12 +87,15 @@ def solve_corrida(data: dict) -> dict:
     for g in grupos:
         nblocks = g["horas_totales"] // g["bloque"]
         vars_g = [v for (gg, tt, dd, ss), v in x.items() if gg == g["id"]]
+        if not vars_g and nblocks > 0:
+            return {"status": "INFEASIBLE", "asignaciones": [], "metricas": {}}
         model.Add(sum(vars_g) == nblocks)
 
     # tutor no overlap per day/hour
     for t in tutores:
-        for d in range(1, 7):
-            for hour in range(7, 21):
+        for d in active_days:
+            day_start, day_end = day_bounds[d]
+            for hour in range(day_start, day_end):
                 covering = []
                 for g in grupos:
                     for start in range(hour - g["bloque"] + 1, hour + 1):
@@ -92,8 +106,8 @@ def solve_corrida(data: dict) -> dict:
 
     # carga maxima
     for t in tutores:
-        vars_t = [v for (gg, tt, dd, ss), v in x.items() if tt == t["id"]]
-        model.Add(sum(v * next(g["bloque"] for g in grupos if g["id"] == gg) for (gg, tt, dd, ss), v in x.items() if tt == t["id"]) <= max_horas)
+        limit = t.get("carga_max") or max_horas
+        model.Add(sum(v * next(g["bloque"] for g in grupos if g["id"] == gg) for (gg, tt, dd, ss), v in x.items() if tt == t["id"]) <= limit)
 
     # objective: preferencia
     obj_terms = []

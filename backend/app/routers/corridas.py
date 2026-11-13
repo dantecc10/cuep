@@ -12,6 +12,7 @@ from app.models.corrida import CorridaHorario
 from app.models.sede import Grupo
 from app.models.user import User
 from app.models.disponibilidad import DisponibilidadTutor, TutorMateria
+from app.services.horario import cargar_horario, serializar_horario
 from app.schemas.corrida import CorridaCreate, CorridaRead
 
 router = APIRouter(prefix="/corridas", tags=["corridas"])
@@ -39,11 +40,13 @@ async def _build_canonical(db: AsyncSession, sede_id: int, grupo_ids: list[int],
 
     grupos_list = [{"id": g.id, "materia_id": g.materia_id, "horas_totales": g.horas_totales, "bloque": g.bloque_horas, "capacidad": g.capacidad} for g in grupos]
 
+    horario = serializar_horario(await cargar_horario(db))
     canonical = {
         "sede_id": sede_id,
         "grupos": sorted(grupos_list, key=lambda x: x["id"]),
         "tutores": sorted(tutor_list, key=lambda x: x["id"]),
         "parametros": parametros or {},
+        "horario_cuep": horario,
     }
     raw = json.dumps(canonical, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(raw.encode()).hexdigest(), canonical

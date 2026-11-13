@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
@@ -12,31 +12,71 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface Materia { id: number; nombre: string; nivel: string; area: string; }
+interface HorarioDia { dia: number; activo: boolean; inicio: string; fin: string; }
+interface DisponibilidadItem { dia_semana: number; hora_inicio: string; hora_fin: string; }
+interface TutorConfig {
+  disponibilidad: DisponibilidadItem[];
+  materias: { materia_id: number; nivel_preferencia: number; vetada: boolean }[];
+}
+interface Interval { inicio: string; fin: string; }
 
-const diasSemana = [
-  { value: 1, label: "Lun" },
-  { value: 2, label: "Mar" },
-  { value: 3, label: "Mié" },
-  { value: 4, label: "Jue" },
-  { value: 5, label: "Vie" },
-  { value: 6, label: "Sáb" },
-];
+const DAY_LABELS: Record<number, string> = {
+  1: "Lunes",
+  2: "Martes",
+  3: "Miércoles",
+  4: "Jueves",
+  5: "Viernes",
+  6: "Sábado",
+  7: "Domingo",
+};
+
+function nextHour(value: string) {
+  const hour = Number(value.split(":")[0]);
+  return `${String(Math.min(hour + 1, 23)).padStart(2, "0")}:00`;
+}
 
 export default function DisponibilidadPage() {
   const user = useAuthStore((s) => s.user);
-  const token = useAuthStore((s) => s.token);
-  const headers = { Authorization: `Bearer ${token}` };
-  const { data: materias } = useQuery<Materia[]>({ queryKey: ["materias"], queryFn: async () => (await api.get("/materias", { headers })).data });
+  const { data: materias } = useQuery<Materia[]>({ queryKey: ["materias"], queryFn: async () => (await api.get("/materias")).data });
+  const { data: horario, isLoading: loadingHorario } = useQuery<HorarioDia[]>({
+    queryKey: ["horario-cuep"],
+    queryFn: async () => (await api.get("/configuracion-horario")).data,
+  });
+  const { data: config, isLoading: loadingConfig } = useQuery<TutorConfig>({
+    queryKey: ["tutor-disponibilidad", user?.id],
+    queryFn: async () => (await api.get(`/tutores/${user?.id}/disponibilidad`)).data,
+    enabled: Boolean(user?.id),
+  });
 
-  const [days, setDays] = useState<number[]>([1]);
-  const [start, setStart] = useState("08:00");
-  const [end, setEnd] = useState("14:00");
+  const [intervals, setIntervals] = useState<Record<number, Interval[]>>({});
   const [materiaSearch, setMateriaSearch] = useState("");
   const [materiaNivel, setMateriaNivel] = useState("");
   const [materiaSort, setMateriaSort] = useState("nombre-asc");
   const [selected, setSelected] = useState<Record<number, { pref: number; vetada: boolean }>>({});
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const activeDays = useMemo(() => (horario || []).filter((day) => day.activo), [horario]);
+  const configByDay = useMemo(() => new Map((horario || []).map((day) => [day.dia, day])), [horario]);
+
+  useEffect(() => {
+    if (!horario || !config) return;
+    const next: Record<number, Interval[]> = {};
+    for (const day of horario) {
+      if (day.activo) next[day.dia] = [];
+    }
+    for (const item of config.disponibilidad) {
+      if (next[item.dia_semana]) {
+        next[item.dia_semana].push({ inicio: item.hora_inicio, fin: item.hora_fin });
+      }
+    }
+    setIntervals(next);
+    setSelected(
+      Object.fromEntries(
+        config.materias.map((materia) => [materia.materia_id, { pref: materia.nivel_preferencia, vetada: materia.vetada }]),
+      ),
+    );
+  }, [horario, config]);
 
   const filteredMaterias = useMemo(() => {
     const term = materiaSearch.trim().toLocaleLowerCase("es");
@@ -57,61 +97,159 @@ export default function DisponibilidadPage() {
     });
   }, [materias, materiaSearch, materiaNivel, materiaSort]);
 
+  function addBlock(day: number) {
+    const window = configByDay.get(day);
+    if (!window) return;
+    setIntervals((current) => ({
+      ...current,
+      [day]: [...(current[day] || []), { inicio: window.inicio, fin: nextHour(window.inicio) }],
+    }));
+  }
+
+  function updateBlock(day: number, index: number, field: keyof Interval, value: string) {
+    setIntervals((current) => ({
+      ...current,
+      [day]: (current[day] || []).map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)),
+    }));
+  }
+
+  function removeBlock(day: number, index: number) {
+    setIntervals((current) => ({
+      ...current,
+      [day]: (current[day] || []).filter((_, itemIndex) => itemIndex !== index),
+    }));
+  }
+
+  function validate() {
+    for (const day of activeDays) {
+      const blocks = intervals[day.dia] || [];
+      const sorted = [...blocks].sort((a, b) => a.inicio.localeCompare(b.inicio));
+      for (let index = 0; index < sorted.length; index += 1) {
+        const block = sorted[index];
+        if (block.inicio >= block.fin) return `El bloque de ${DAY_LABELS[day.dia]} no es válido.`;
+        if (block.inicio < day.inicio || block.fin > day.fin) {
+          return `El bloque de ${DAY_LABELS[day.dia]} debe estar entre ${day.inicio} y ${day.fin}.`;
+        }
+        if (block.inicio.split(":")[1] !== "00" || block.fin.split(":")[1] !== "00") {
+          return "Los bloques deben ser en horas completas.";
+        }
+        if (index + 1 < sorted.length && block.fin > sorted[index + 1].inicio) {
+          return `Hay bloques traslapados el ${DAY_LABELS[day.dia]}.`;
+        }
+      }
+    }
+    return "";
+  }
+
   async function save() {
     if (!user) return;
+    const error = validate();
+    if (error) {
+      setMsg(error);
+      return;
+    }
     setSaving(true);
     setMsg("");
-    const disponibilidad = days.map((d) => ({ dia_semana: d, hora_inicio: start, hora_fin: end }));
-    const materiasPayload = Object.entries(selected).map(([id, v]) => ({ materia_id: Number(id), nivel_preferencia: v.pref, vetada: v.vetada }));
+    const disponibilidad = activeDays.flatMap((day) =>
+      (intervals[day.dia] || []).map((block) => ({
+        dia_semana: day.dia,
+        hora_inicio: block.inicio,
+        hora_fin: block.fin,
+      })),
+    );
+    const materiasPayload = Object.entries(selected).map(([id, value]) => ({
+      materia_id: Number(id),
+      nivel_preferencia: value.pref,
+      vetada: value.vetada,
+    }));
     try {
-      await api.put(`/tutores/${user.id}/disponibilidad`, { disponibilidad, materias: materiasPayload }, { headers });
+      await api.put(`/tutores/${user.id}/disponibilidad`, { disponibilidad, materias: materiasPayload });
       setMsg("Disponibilidad guardada correctamente.");
     } catch {
-      setMsg("No pudimos guardar tu disponibilidad. Inténtalo de nuevo.");
+      setMsg("No pudimos guardar tu disponibilidad. Revisa los bloques e inténtalo de nuevo.");
     } finally {
       setSaving(false);
     }
   }
+
+  const loading = loadingHorario || loadingConfig;
 
   return (
     <AppShell title="Disponibilidad">
       <div className="space-y-6">
         <PageHeader title="Disponibilidad y materias" description="Marca cuándo puedes dar asesoría y qué materias quieres acompañar." />
 
-        <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <section className="poster-card h-fit p-5 sm:p-6">
             <p className="type-kicker">Horario base</p>
             <h2 className="mt-2 font-display text-2xl uppercase text-primary">Días y horas</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {diasSemana.map((dia) => {
-                const active = days.includes(dia.value);
+            <p className="mt-2 text-xs leading-relaxed text-ink/55">
+              El CUEP opera en: {activeDays.length ? activeDays.map((day) => `${DAY_LABELS[day.dia]} ${day.inicio}–${day.fin}`).join(" · ") : "sin días configurados"}.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              {loading && <div className="h-40 animate-pulse border border-ink/15 bg-sand" />}
+              {!loading && activeDays.length === 0 && (
+                <EmptyState title="Sin horario CUEP" description="La coordinación aún no ha configurado los días y horas del CUEP." />
+              )}
+              {!loading && activeDays.map((day) => {
+                const blocks = intervals[day.dia] || [];
                 return (
-                  <button
-                    key={dia.value}
-                    type="button"
-                    onClick={() => setDays(active ? days.filter((d) => d !== dia.value) : [...days, dia.value])}
-                    className={`border px-3 py-2 font-mono text-[0.62rem] font-bold uppercase tracking-[0.08em] transition ${
-                      active ? "border-ink bg-yellow text-ink shadow-[2px_2px_0_#171313]" : "border-ink/20 text-ink/55 hover:border-ink"
-                    }`}
-                  >
-                    {dia.label}
-                  </button>
+                  <div key={day.dia} className="border border-ink/20 bg-accent/5 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-display text-xl uppercase text-ink">{DAY_LABELS[day.dia]}</p>
+                        <p className="font-mono text-[0.58rem] uppercase tracking-[0.08em] text-ink/45">
+                          Ventana CUEP: {day.inicio}–{day.fin}
+                        </p>
+                      </div>
+                      <Button type="button" size="sm" variant="outline" onClick={() => addBlock(day.dia)}>
+                        Agregar bloque
+                      </Button>
+                    </div>
+                    {blocks.length === 0 ? (
+                      <p className="mt-3 border border-dashed border-ink/20 bg-cream/60 px-3 py-2 text-xs text-ink/55">
+                        Sin disponibilidad. Agrega un bloque si puedes acompañar este día.
+                      </p>
+                    ) : (
+                      <div className="mt-3 space-y-2">
+                        {blocks.map((block, index) => (
+                          <div key={`${day.dia}-${index}`} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
+                            <div className="space-y-1">
+                              <Label htmlFor={`inicio-${day.dia}-${index}`}>Desde</Label>
+                              <Input
+                                id={`inicio-${day.dia}-${index}`}
+                                type="time"
+                                step={3600}
+                                min={day.inicio}
+                                max={day.fin}
+                                value={block.inicio}
+                                onChange={(event) => updateBlock(day.dia, index, "inicio", event.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`fin-${day.dia}-${index}`}>Hasta</Label>
+                              <Input
+                                id={`fin-${day.dia}-${index}`}
+                                type="time"
+                                step={3600}
+                                min={day.inicio}
+                                max={day.fin}
+                                value={block.fin}
+                                onChange={(event) => updateBlock(day.dia, index, "fin", event.target.value)}
+                              />
+                            </div>
+                            <Button type="button" size="sm" variant="ghost" onClick={() => removeBlock(day.dia, index)}>
+                              Quitar
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="hora-inicio">Desde</Label>
-                <Input id="hora-inicio" type="time" value={start} onChange={(e) => setStart(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="hora-fin">Hasta</Label>
-                <Input id="hora-fin" type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
-              </div>
-            </div>
-            <p className="mt-4 border-l-2 border-yellow bg-yellow/10 px-3 py-2 text-xs leading-relaxed text-ink/60">
-              La coordinación usará este rango para asignarte grupos. Puedes ajustarlo cuando cambie tu disponibilidad.
-            </p>
           </section>
 
           <section className="poster-card p-5 sm:p-6">
@@ -235,7 +373,7 @@ export default function DisponibilidadPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 border-t border-ink/15 pt-5">
-          <Button onClick={save} disabled={saving}>{saving ? "Guardando..." : "Guardar disponibilidad"}</Button>
+          <Button onClick={save} disabled={saving || loading}>{saving ? "Guardando..." : "Guardar disponibilidad"}</Button>
           {msg && <p role="status" className="text-sm font-semibold text-accent-deep">{msg}</p>}
         </div>
       </div>
