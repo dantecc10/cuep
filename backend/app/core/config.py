@@ -1,6 +1,10 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
 from typing import List
 import json
+
+ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
@@ -33,7 +37,7 @@ class Settings(BaseSettings):
     def r2_endpoint_url(self) -> str:
         return f"https://{self.R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": str(ENV_FILE), "env_file_encoding": "utf-8"}
 
 
 settings = Settings()

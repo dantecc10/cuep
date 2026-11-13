@@ -7,9 +7,11 @@ from app.core.config import settings
 from app.core.database import engine
 from app.core.limiter import limiter
 from app.routers import auth, users, materias, sedes, tutores, corridas, worker, two_factor, students, planes, uploads, imports
+from app.services.storage import log_r2_config
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    log_r2_config()
     yield
     await engine.dispose()
 

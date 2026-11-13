@@ -17,6 +17,25 @@ ALLOWED_IMAGE_TYPES = {
 MAX_AVATAR_BYTES = 5 * 1024 * 1024
 
 
+def log_r2_config() -> None:
+    if not r2_configured():
+        logger.info("R2 no configurado; las fotos usaran una URL publica.")
+        return
+    logger.info(
+        "R2 config: endpoint=%s bucket=%s key_suffix=%s secret_len=%d public_base=%s",
+        settings.r2_endpoint_url,
+        settings.R2_BUCKET,
+        settings.R2_ACCESS_KEY_ID[-6:],
+        len(settings.R2_SECRET_ACCESS_KEY),
+        settings.R2_PUBLIC_BASE or "<sin configurar>",
+    )
+    if settings.R2_PUBLIC_BASE.rstrip("/").endswith("r2.cloudflarestorage.com"):
+        logger.warning(
+            "R2_PUBLIC_BASE apunta al endpoint privado S3; "
+            "usa la URL publica r2.dev o un dominio personalizado."
+        )
+
+
 def r2_configured() -> bool:
     return bool(
         settings.R2_ACCOUNT_ID
