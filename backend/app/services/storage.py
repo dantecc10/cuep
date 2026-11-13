@@ -1,9 +1,12 @@
+import logging
 import uuid
 
 from fastapi import HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_IMAGE_TYPES = {
     "image/jpeg": ".jpg",
@@ -74,9 +77,17 @@ async def upload_avatar(file: UploadFile, user_id: int) -> str:
     try:
         await run_in_threadpool(put)
     except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="No se pudo subir la imagen. Intenta de nuevo o usa una URL pública.",
-        ) from exc
+        logger.exception("Fallo al subir a R2 (bucket=%s)", settings.R2_BUCKET)
+        code = None
+        response = getattr(exc, "response", None)
+        if isinstance(response, dict):
+            code = response.get("Error", {}).get("Code")
+        detail = "No se pudo subir la imagen. Intenta de nuevo o usa una URL pública."
+        if code:
+            detail = (
+                f"No se pudo subir la imagen a R2 ({code}). "
+                "Revisa el nombre del bucket, las credenciales y los permisos del token."
+            )
+        raise HTTPException(status_code=502, detail=detail) from exc
 
     return _public_url(key)
