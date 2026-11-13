@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,6 +18,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setExpired(params.get("expired") === "1");
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +71,12 @@ export default function LoginPage() {
             <p className="type-kicker">Acceso</p>
             <h2 className="mt-3 font-display text-4xl uppercase leading-none text-primary">Iniciar sesión</h2>
             <p className="mt-3 text-sm leading-relaxed text-ink/60">Usa el correo con el que te registraste en el sistema.</p>
+
+            {expired && (
+              <p role="status" className="mt-4 border-l-2 border-yellow bg-yellow/10 px-3 py-2 text-sm font-semibold text-ink">
+                Tu sesión expiró. Vuelve a iniciar sesión para continuar.
+              </p>
+            )}
 
             <form onSubmit={handleSubmit} className="mt-7 space-y-5">
               <div className="space-y-2">

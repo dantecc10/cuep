@@ -82,6 +82,8 @@ const roleLabels: Record<string, string> = {
 export default function MiPerfilPage() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
+  const fetchUser = useAuthStore((s) => s.fetchUser);
   const role = user?.role;
   const isStudent = role === "alumno";
   const photoKey = isStudent ? "photo_url" : "foto_url";
@@ -120,12 +122,18 @@ export default function MiPerfilPage() {
       const headers = { Authorization: `Bearer ${token}` };
       const endpoint = isStudent ? "/students/me" : "/auth/me/profile";
       await api.put(endpoint, form, { headers });
+      await fetchUser();
       setMsg("Perfil actualizado correctamente.");
     } catch {
       setMsg("No pudimos guardar los cambios. Revisa los datos e inténtalo de nuevo.");
     } finally {
       setSaving(false);
     }
+  }
+
+  function handlePhotoChange(url: string) {
+    setForm((current) => ({ ...current, [photoKey]: url }));
+    updateUser({ foto_url: url });
   }
 
   function setField(key: string, raw: string) {
@@ -161,7 +169,7 @@ export default function MiPerfilPage() {
               <div className="mt-4">
                 <FotoUploader
                   value={String(form[photoKey] ?? "")}
-                  onChange={(url) => setForm((current) => ({ ...current, [photoKey]: url }))}
+                  onChange={handlePhotoChange}
                   label="Fotografía de perfil"
                   id="perfil-foto"
                 />

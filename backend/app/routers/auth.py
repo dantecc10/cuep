@@ -1,20 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.core.database import get_async_db
-from app.core.security import verify_password, create_access_token, decode_token, get_password_hash
+from app.core.security import verify_password, create_access_token, create_refresh_token, decode_token, get_password_hash
 from app.services.matricula import generar_matricula
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.student import Student
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
+from app.core.cookies import clear_refresh_cookie, set_refresh_cookie
 from app.schemas.user import UserRead, UserProfileUpdate
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login")
-async def login(payload: LoginRequest, db: AsyncSession = Depends(get_async_db)):
+async def login(payload: LoginRequest, response: Response, db: AsyncSession = Depends(get_async_db)):
     result = await db.execute(
         select(User).where(func.lower(User.email) == payload.email.strip().lower())
     )
@@ -46,6 +47,7 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_async_db))
         return {"requires_2fa": True, "challenge_id": challenge_id, "methods": ["email", "totp"]}
 
     access = create_access_token(str(user.id))
+    set_refresh_cookie(response, create_refresh_token(str(user.id)))
     return TokenResponse(access_token=access)
 
 
@@ -154,12 +156,33 @@ async def register_tutor(payload: dict, db: AsyncSession = Depends(get_async_db)
     return {"id": user.id, "email": user.email, "role": user.role, "estado": "pendiente_aprobacion"}
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(payload: RefreshRequest):
-    decoded = decode_token(payload.refresh_token)
+async def refresh(
+    request: Request,
+    response: Response,
+    payload: RefreshRequest | None = Body(default=None),
+    db: AsyncSession = Depends(get_async_db),
+):
+    from app.core.config import settings
+
+    token = request.cookies.get(settings.REFRESH_COOKIE_NAME) or (payload.refresh_token if payload else None)
+    decoded = decode_token(token) if token else None
     if decoded is None or decoded.get("type") != "refresh":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh inválido")
-    access = create_access_token(decoded["sub"])
-    return TokenResponse(access_token=access)
+    try:
+        user_id = int(decoded["sub"])
+    except (KeyError, TypeError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh inválido") from None
+    user = await db.get(User, user_id)
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no encontrado")
+    set_refresh_cookie(response, create_refresh_token(str(user.id)))
+    return TokenResponse(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/logout", status_code=204)
+async def logout(response: Response):
+    clear_refresh_cookie(response)
+    return None
 
 
 @router.get("/me", response_model=UserRead)
@@ -186,6 +209,11 @@ async def update_my_profile(
         value = getattr(payload, field, None)
         if value is not None:
             setattr(user, field, value)
+    if payload.foto_url is not None and user.role == "alumno":
+        student_result = await db.execute(select(Student).where(Student.user_id == user.id))
+        student = student_result.scalar_one_or_none()
+        if student is not None:
+            student.photo_url = payload.foto_url
     await db.flush()
     await db.refresh(user)
     return user

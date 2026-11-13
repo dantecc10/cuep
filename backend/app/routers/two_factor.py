@@ -2,15 +2,17 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete as _delete
 
 from app.core.database import get_async_db
 from app.core.dependencies import get_current_user
 from app.core.limiter import limiter
+from app.core.cookies import set_refresh_cookie
 from app.core.security import (
     create_access_token,
+    create_refresh_token,
     decrypt_totp_secret,
     encrypt_totp_secret,
     generate_recovery_code,
@@ -132,7 +134,7 @@ async def resend(request: Request, payload: ResendRequest, db: AsyncSession = De
 
 @router.post("/verify")
 @limiter.limit("10/minute")
-async def verify_2fa(request: Request, payload: Verify2FARequest, db: AsyncSession = Depends(get_async_db)):
+async def verify_2fa(request: Request, response: Response, payload: Verify2FARequest, db: AsyncSession = Depends(get_async_db)):
     result = await db.execute(select(TwoFactorChallenge).where(TwoFactorChallenge.challenge_id == payload.challenge_id))
     ch = result.scalar_one_or_none()
     if ch is None or ch.consumed:
@@ -179,4 +181,5 @@ async def verify_2fa(request: Request, payload: Verify2FARequest, db: AsyncSessi
         await db.flush()
     await _audit(db, user.id, method, True, request.client.host if request.client else None)
     access = create_access_token(str(user.id))
+    set_refresh_cookie(response, create_refresh_token(str(user.id)))
     return {"access_token": access, "token_type": "bearer", "trusted_device_token": token if payload.trust_device else None}

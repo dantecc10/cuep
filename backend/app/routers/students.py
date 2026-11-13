@@ -90,6 +90,8 @@ async def update_my_student(payload: StudentUpdate, user: User = Depends(get_cur
         value = getattr(payload, field, None)
         if value is not None:
             setattr(student, field, value)
+    if payload.photo_url is not None:
+        user.foto_url = payload.photo_url
     await db.flush()
     await db.refresh(student)
     return student

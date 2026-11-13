@@ -13,6 +13,12 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    REFRESH_COOKIE_NAME: str = "cuep_refresh"
+    REFRESH_COOKIE_PATH: str = "/api/v1/auth"
+    COOKIE_SECURE: bool = False
+    COOKIE_SAMESITE: str = "lax"
+    COOKIE_DOMAIN: str = ""
+    APP_TIMEZONE: str = "America/Mexico_City"
     WORKER_API_KEY: str = "change-this-worker-key"
     CORS_ORIGINS: str = '["http://localhost:3000","http://localhost:5173"]'
     R2_ACCOUNT_ID: str = ""

@@ -83,11 +83,12 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
   const pathname = usePathname();
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  const initialized = useAuthStore((s) => s.initialized);
   const logout = useAuthStore((s) => s.logout);
 
   useEffect(() => {
-    if (!token) router.push("/login");
-  }, [token, router]);
+    if (initialized && !token) router.replace("/login");
+  }, [initialized, token, router]);
 
   const links = linksByRole[user?.role || ""] || [{ href: "/dashboard", label: "Panel", icon: LayoutDashboard }];
   const activeLink = links.find((link) => link.href === pathname);
@@ -97,6 +98,18 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
   function handleLogout() {
     logout();
     router.push("/");
+  }
+
+  if (!initialized) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-cream px-4">
+        <div className="w-full max-w-sm border border-ink/15 bg-sand p-6">
+          <div className="h-4 w-32 animate-pulse bg-ink/10" />
+          <div className="mt-4 h-10 w-full animate-pulse bg-ink/10" />
+          <div className="mt-2 h-10 w-full animate-pulse bg-ink/10" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -139,7 +152,12 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
 
         <div className="border-t border-paper-light/15 p-3">
           <div className="flex items-center gap-3 border border-paper-light/15 bg-paper-light/5 p-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent font-mono text-xs font-bold text-ink">{initials}</span>
+            {user?.foto_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.foto_url} alt={`Foto de ${user.nombre}`} className="h-9 w-9 shrink-0 rounded-full border border-paper-light/25 object-cover" />
+            ) : (
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent font-mono text-xs font-bold text-ink">{initials}</span>
+            )}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-paper-light">{user?.nombre || "Usuario CUEP"}</p>
               <p className="truncate font-mono text-[0.58rem] uppercase tracking-[0.1em] text-paper-light/45">{user?.email || roleLabels[user?.role || ""] || "Sesión"}</p>
@@ -170,7 +188,12 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
               <span className="font-display text-2xl uppercase leading-none text-primary">CUEP</span>
             </Link>
             <div className="flex items-center gap-2">
-              <Image src="/identity/penguin.png" alt="" width={34} height={48} className="h-9 w-auto" />
+              {user?.foto_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.foto_url} alt={`Foto de ${user.nombre}`} className="h-9 w-9 rounded-full border border-ink/20 object-cover" />
+              ) : (
+                <Image src="/identity/penguin.png" alt="" width={34} height={48} className="h-9 w-auto" />
+              )}
               <button type="button" onClick={handleLogout} className="border border-ink px-2.5 py-1.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.08em] text-ink">
                 Salir
               </button>
