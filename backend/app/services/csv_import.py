@@ -46,6 +46,20 @@ HEADER_ALIASES = {
 TRUE_VALUES = {"1", "true", "si", "sí", "yes", "x", "verdadero"}
 FALSE_VALUES = {"0", "false", "no", "n", "falso"}
 
+FIELD_LIMITS: dict[str, dict[str, int]] = {
+    "materias": {"nombre": 100, "nivel": 20, "area": 50},
+    "planes": {"nombre": 150, "nivel": 20, "area": 50},
+    "sedes": {"nombre": 150, "ciudad": 100, "codigo": 1},
+    "usuarios": {
+        "email": 255,
+        "nombre": 100,
+        "apellido_paterno": 100,
+        "apellido_materno": 100,
+        "telefono": 30,
+        "area_principal": 50,
+    },
+}
+
 
 class CsvFormatError(HTTPException):
     def __init__(self, detail: str):
@@ -152,6 +166,45 @@ def _add_warning(report: ImportReport, row: int, message: str) -> None:
     report.advertencias.append(ImportRowIssue(fila=row, mensaje=message))
 
 
+def _friendly_db_error(exc: Exception) -> str:
+    name = type(exc).__name__.lower()
+    text = str(exc).lower()
+    if "stringdatarighttruncation" in name or "value too long" in text:
+        return "Uno de los valores es demasiado largo para la base de datos."
+    if "uniqueviolation" in name or "duplicate key" in text:
+        return "Ya existe un registro con ese valor único (revisa el código o el correo)."
+    if "notnullviolation" in name or "not-null" in text:
+        return "Falta un dato obligatorio."
+    if "foreignkeyviolation" in name or "foreign key" in text:
+        return "El registro hace referencia a una sede o materia que no existe."
+    if "checkviolation" in name or "check constraint" in text:
+        return "Uno de los valores no cumple las reglas permitidas."
+    return "No se pudo guardar la fila por un dato inválido. Revisa los valores e inténtalo de nuevo."
+
+
+def _check_lengths(
+    report: ImportReport,
+    row: int,
+    entity: str,
+    values: dict[str, Optional[str]],
+) -> bool:
+    limits = FIELD_LIMITS.get(entity, {})
+    valid = True
+    for field, max_length in limits.items():
+        value = values.get(field)
+        if value is None:
+            continue
+        if len(str(value)) > max_length:
+            _add_error(
+                report,
+                row,
+                f"El campo '{field}' no puede superar {max_length} caracteres "
+                f"(tiene {len(str(value))}).",
+            )
+            valid = False
+    return valid
+
+
 def _first_available_code(used_codes: set[str]) -> Optional[str]:
     for letter in string.ascii_uppercase:
         if letter not in used_codes:
@@ -181,6 +234,8 @@ async def _import_materias(
         if not area:
             _add_error(report, index, "El área es obligatoria.")
             continue
+        if not _check_lengths(report, index, "materias", {"nombre": nombre, "nivel": nivel, "area": area}):
+            continue
 
         key = _key(nombre, nivel)
         if key in by_key or key in seen:
@@ -198,7 +253,7 @@ async def _import_materias(
                 db.add(materia)
                 await db.flush()
         except Exception as exc:  # noqa: BLE001
-            _add_error(report, index, f"No se pudo crear la materia: {exc}")
+            _add_error(report, index, f"No se pudo crear la materia: {_friendly_db_error(exc)}")
             continue
 
         seen.add(key)
@@ -223,6 +278,7 @@ async def _import_sedes(
             _add_error(report, index, "El nombre es obligatorio.")
             continue
 
+        ciudad = _normalize(row.get("ciudad"))
         codigo = _normalize(row.get("codigo"))
         if codigo:
             codigo = codigo.upper()
@@ -244,6 +300,9 @@ async def _import_sedes(
             report.omitidas += 1
             continue
 
+        if not _check_lengths(report, index, "sedes", {"nombre": nombre, "ciudad": ciudad, "codigo": codigo}):
+            continue
+
         try:
             activo = _parse_bool(row.get("activo"), default=True)
         except ValueError as exc:
@@ -254,7 +313,7 @@ async def _import_sedes(
             async with db.begin_nested():
                 sede = Sede(
                     nombre=nombre,
-                    ciudad=_normalize(row.get("ciudad")),
+                    ciudad=ciudad,
                     codigo=codigo,
                     descripcion=_normalize(row.get("descripcion")),
                     maps_url=_normalize(row.get("maps_url")),
@@ -264,7 +323,7 @@ async def _import_sedes(
                 db.add(sede)
                 await db.flush()
         except Exception as exc:  # noqa: BLE001
-            _add_error(report, index, f"No se pudo crear la sede: {exc}")
+            _add_error(report, index, f"No se pudo crear la sede: {_friendly_db_error(exc)}")
             continue
 
         used_codes.add(codigo)
@@ -307,6 +366,8 @@ async def _import_planes(
 
         area = _normalize(row.get("area"))
         descripcion = _normalize(row.get("descripcion"))
+        if not _check_lengths(report, index, "planes", {"nombre": nombre, "nivel": nivel, "area": area}):
+            continue
         materias_raw = _normalize(row.get("materias"))
         materia_names = (
             [part.strip() for part in materias_raw.replace(",", ";").split(";") if part.strip()]
@@ -359,7 +420,7 @@ async def _import_planes(
         except Exception as exc:  # noqa: BLE001
             for materia_key in new_materia_keys:
                 materias_by_key.pop(materia_key, None)
-            _add_error(report, index, f"No se pudo crear el plan: {exc}")
+            _add_error(report, index, f"No se pudo crear el plan: {_friendly_db_error(exc)}")
             continue
 
         report.creadas_relacionadas.extend(row_created_related)
@@ -466,6 +527,24 @@ async def _import_usuarios(
             _add_error(report, index, "La carga máxima no puede ser negativa.")
             continue
 
+        apellido_materno = _normalize(row.get("apellido_materno"))
+        telefono = _normalize(row.get("telefono"))
+        area_principal = _normalize(row.get("area_principal"))
+        if not _check_lengths(
+            report,
+            index,
+            "usuarios",
+            {
+                "email": email,
+                "nombre": nombre,
+                "apellido_paterno": apellido_paterno,
+                "apellido_materno": apellido_materno,
+                "telefono": telefono,
+                "area_principal": area_principal,
+            },
+        ):
+            continue
+
         temporary_password = secrets.token_urlsafe(9)
         try:
             password_hash = await run_in_threadpool(get_password_hash, temporary_password)
@@ -475,19 +554,19 @@ async def _import_usuarios(
                     password_hash=password_hash,
                     nombre=nombre,
                     apellido_paterno=apellido_paterno,
-                    apellido_materno=_normalize(row.get("apellido_materno")),
+                    apellido_materno=apellido_materno,
                     role=role,
                     sede_id=sede.id if sede else None,
                     es_tutor=es_tutor,
-                    telefono=_normalize(row.get("telefono")),
-                    area_principal=_normalize(row.get("area_principal")),
+                    telefono=telefono,
+                    area_principal=area_principal,
                     carga_max_horas=carga_max_horas,
                     is_active=True,
                 )
                 db.add(user)
                 await db.flush()
         except Exception as exc:  # noqa: BLE001
-            _add_error(report, index, f"No se pudo crear el usuario: {exc}")
+            _add_error(report, index, f"No se pudo crear el usuario: {_friendly_db_error(exc)}")
             continue
 
         existing_by_email[email.casefold()] = user

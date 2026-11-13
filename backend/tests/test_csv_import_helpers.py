@@ -5,12 +5,15 @@ from fastapi import HTTPException
 from starlette.datastructures import UploadFile
 
 from app.services.csv_import import (
+    _check_lengths,
     _first_available_code,
+    _friendly_db_error,
     _normalize_header,
     _parse_bool,
     _read_rows,
     build_template,
 )
+from app.schemas.imports import ImportReport
 
 
 def test_templates_have_headers_and_bom():
@@ -44,6 +47,30 @@ def test_parse_bool():
     assert _parse_bool(None, default=True) is True
     with pytest.raises(ValueError):
         _parse_bool("quizá")
+
+
+def test_check_lengths_reports_friendly_row_errors():
+    report = ImportReport(entidad="sedes", total=1)
+    valid = _check_lengths(
+        report,
+        2,
+        "sedes",
+        {"nombre": "x" * 151, "ciudad": "Puebla", "codigo": "A"},
+    )
+    assert valid is False
+    assert report.fallidas == 1
+    assert "nombre" in report.errores[0].mensaje
+    assert "151" in report.errores[0].mensaje
+
+
+def test_friendly_db_error_hides_raw_sql():
+    truncation = _friendly_db_error(RuntimeError("value too long for type character varying(500)"))
+    duplicate = _friendly_db_error(RuntimeError("duplicate key value violates unique constraint"))
+    fallback = _friendly_db_error(RuntimeError("boom"))
+    assert "demasiado largo" in truncation
+    assert "único" in duplicate
+    assert "inválido" in fallback
+    assert "character varying" not in truncation
 
 
 @pytest.mark.asyncio
