@@ -35,6 +35,7 @@ interface Clase {
   origen: string;
 }
 interface Tutor { id: number; nombre: string; apellido_paterno: string; apellido_materno: string | null; }
+interface Grupo { id: number; nombre: string; materia_id: number; }
 
 const ESTADOS = [
   { value: "pendiente", label: "Pendiente" },
@@ -65,6 +66,17 @@ export default function AsistenciaPage() {
   const [cubridorId, setCubridorId] = useState("");
   const [comentario, setComentario] = useState("");
   const [error, setError] = useState("");
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualSedeId, setManualSedeId] = useState("");
+  const [manualGrupoId, setManualGrupoId] = useState("");
+  const [manualTutorId, setManualTutorId] = useState("");
+  const [manualFecha, setManualFecha] = useState(fecha);
+  const [manualInicio, setManualInicio] = useState("08:00");
+  const [manualFin, setManualFin] = useState("09:00");
+  const [manualEstado, setManualEstado] = useState("asistio");
+  const [manualCubridorId, setManualCubridorId] = useState("");
+  const [manualComentario, setManualComentario] = useState("");
+  const [manualError, setManualError] = useState("");
 
   const isAdmin = user?.role === "admin";
   const { data: sedes } = useQuery<Sede[]>({ queryKey: ["sedes"], queryFn: async () => (await api.get("/sedes")).data });
@@ -80,6 +92,16 @@ export default function AsistenciaPage() {
     queryKey: ["tutores", selected?.sede_id],
     queryFn: async () => (await api.get(`/tutores?sede_id=${selected?.sede_id}`)).data,
     enabled: Boolean(selected),
+  });
+  const { data: manualGrupos } = useQuery<Grupo[]>({
+    queryKey: ["grupos", manualSedeId],
+    queryFn: async () => (await api.get(`/sedes/${manualSedeId}/grupos`)).data,
+    enabled: manualOpen && Boolean(manualSedeId),
+  });
+  const { data: manualTutores } = useQuery<Tutor[]>({
+    queryKey: ["tutores", manualSedeId],
+    queryFn: async () => (await api.get(`/tutores?sede_id=${manualSedeId}`)).data,
+    enabled: manualOpen && Boolean(manualSedeId),
   });
 
   const resumen = useMemo(() => {
@@ -120,12 +142,69 @@ export default function AsistenciaPage() {
     },
   });
 
+  const manualMutation = useMutation({
+    mutationFn: async () => api.post("/asistencia/sesiones", {
+      corrida_id: null,
+      sede_id: Number(manualSedeId),
+      grupo_id: Number(manualGrupoId),
+      tutor_id: Number(manualTutorId),
+      fecha: manualFecha,
+      hora_inicio: manualInicio,
+      hora_fin: manualFin,
+      estado: manualEstado,
+      tutor_cubridor_id: manualEstado === "cubierta" ? Number(manualCubridorId) : null,
+      comentario: manualComentario.trim() || null,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["asistencia"] });
+      queryClient.invalidateQueries({ queryKey: ["mis-sesiones"] });
+      setManualOpen(false);
+      setManualError("");
+      setFecha(manualFecha);
+    },
+    onError: (err: unknown) => {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setManualError(detail || "No pudimos crear la sesión manual.");
+    },
+  });
+
   function openClase(clase: Clase) {
     setSelected(clase);
     setEstado(clase.estado);
     setCubridorId(clase.tutor_cubridor_id ? String(clase.tutor_cubridor_id) : "");
     setComentario(clase.comentario || "");
     setError("");
+  }
+
+  function openManual() {
+    const defaultSede = user?.sede_id ? String(user.sede_id) : sedeFilter || String(sedes?.[0]?.id || "");
+    setManualSedeId(defaultSede);
+    setManualGrupoId("");
+    setManualTutorId("");
+    setManualFecha(fecha);
+    setManualInicio("08:00");
+    setManualFin("09:00");
+    setManualEstado("asistio");
+    setManualCubridorId("");
+    setManualComentario("");
+    setManualError("");
+    setManualOpen(true);
+  }
+
+  function submitManual() {
+    if (!manualSedeId || !manualGrupoId || !manualTutorId || !manualFecha) {
+      setManualError("Completa sede, grupo, tutor y fecha.");
+      return;
+    }
+    if (manualInicio >= manualFin) {
+      setManualError("La hora de inicio debe ser menor a la de fin.");
+      return;
+    }
+    if (manualEstado === "cubierta" && !manualCubridorId) {
+      setManualError("Selecciona el tutor que cubrió la clase.");
+      return;
+    }
+    manualMutation.mutate();
   }
 
   const columns: Column<Clase>[] = [
@@ -187,7 +266,11 @@ export default function AsistenciaPage() {
   return (
     <AppShell title="Asistencia">
       <div className="space-y-6">
-        <PageHeader title="Asistencia de tutores" description="Registra asistencia, retardos, faltas, justificaciones y clases cubiertas." />
+        <PageHeader
+          title="Asistencia de tutores"
+          description="Registra asistencia, retardos, faltas, justificaciones y clases cubiertas."
+          actions={<Button onClick={openManual}>Nueva sesión manual</Button>}
+        />
 
         <div className="poster-card grid gap-4 p-4 sm:grid-cols-[auto_auto_1fr] sm:items-end">
           <div className="space-y-2">
@@ -314,6 +397,123 @@ export default function AsistenciaPage() {
               disabled={saveMutation.isPending || (estado === "cubierta" && !cubridorId)}
             >
               {saveMutation.isPending ? "Guardando..." : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={manualOpen} onOpenChange={(open) => !open && setManualOpen(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nueva sesión manual</DialogTitle>
+            <DialogDescription>Agrega una clase que no forma parte del horario publicado.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="manual-sede">Sede</Label>
+              <select
+                id="manual-sede"
+                className="h-10 w-full border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                value={manualSedeId}
+                disabled={!isAdmin}
+                onChange={(event) => {
+                  setManualSedeId(event.target.value);
+                  setManualGrupoId("");
+                  setManualTutorId("");
+                  setManualCubridorId("");
+                }}
+              >
+                <option value="">Selecciona una sede</option>
+                {(sedes || []).map((sede) => <option key={sede.id} value={sede.id}>{sede.nombre}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-fecha">Fecha</Label>
+              <Input id="manual-fecha" type="date" value={manualFecha} onChange={(event) => setManualFecha(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-grupo">Grupo</Label>
+              <select
+                id="manual-grupo"
+                className="h-10 w-full border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                value={manualGrupoId}
+                onChange={(event) => setManualGrupoId(event.target.value)}
+              >
+                <option value="">Selecciona un grupo</option>
+                {(manualGrupos || []).map((grupo) => <option key={grupo.id} value={grupo.id}>{grupo.nombre}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-tutor">Tutor titular</Label>
+              <select
+                id="manual-tutor"
+                className="h-10 w-full border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                value={manualTutorId}
+                onChange={(event) => {
+                  setManualTutorId(event.target.value);
+                  if (event.target.value === manualCubridorId) setManualCubridorId("");
+                }}
+              >
+                <option value="">Selecciona un tutor</option>
+                {(manualTutores || []).map((tutor) => <option key={tutor.id} value={tutor.id}>{tutorName(tutor)}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-inicio">Desde</Label>
+              <Input id="manual-inicio" type="time" step={3600} value={manualInicio} onChange={(event) => setManualInicio(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-fin">Hasta</Label>
+              <Input id="manual-fin" type="time" step={3600} value={manualFin} onChange={(event) => setManualFin(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-estado">Estado</Label>
+              <select
+                id="manual-estado"
+                className="h-10 w-full border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                value={manualEstado}
+                onChange={(event) => {
+                  setManualEstado(event.target.value);
+                  if (event.target.value !== "cubierta") setManualCubridorId("");
+                }}
+              >
+                {ESTADOS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
+            </div>
+            {manualEstado === "cubierta" && (
+              <div className="space-y-2">
+                <Label htmlFor="manual-cubridor">Tutor que cubrió</Label>
+                <select
+                  id="manual-cubridor"
+                  className="h-10 w-full border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                  value={manualCubridorId}
+                  onChange={(event) => setManualCubridorId(event.target.value)}
+                >
+                  <option value="">Selecciona un tutor</option>
+                  {(manualTutores || []).filter((tutor) => String(tutor.id) !== manualTutorId).map((tutor) => (
+                    <option key={tutor.id} value={tutor.id}>{tutorName(tutor)}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="manual-comentario">Comentario</Label>
+              <textarea
+                id="manual-comentario"
+                rows={3}
+                className="w-full border border-ink/25 bg-surface px-3 py-2 text-sm text-ink outline-none focus-visible:border-primary"
+                value={manualComentario}
+                onChange={(event) => setManualComentario(event.target.value)}
+                placeholder="Opcional."
+              />
+            </div>
+          </div>
+          {manualError && <p role="alert" className="mt-4 text-sm font-semibold text-accent-deep">{manualError}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManualOpen(false)}>Cancelar</Button>
+            <Button onClick={submitManual} disabled={manualMutation.isPending}>
+              {manualMutation.isPending ? "Guardando..." : "Crear sesión"}
             </Button>
           </DialogFooter>
         </DialogContent>
