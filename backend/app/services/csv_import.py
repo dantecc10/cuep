@@ -1,6 +1,7 @@
 import asyncio
 import csv
 import io
+import logging
 import secrets
 import string
 import unicodedata
@@ -25,6 +26,8 @@ from app.schemas.imports import (
     ImportRowIssue,
 )
 from app.services.email import send_email_sync
+
+logger = logging.getLogger(__name__)
 
 Entity = Literal["materias", "planes", "sedes", "usuarios"]
 
@@ -253,6 +256,7 @@ async def _import_materias(
                 db.add(materia)
                 await db.flush()
         except Exception as exc:  # noqa: BLE001
+            logger.exception("Error importando materia en la fila %s", index)
             _add_error(report, index, f"No se pudo crear la materia: {_friendly_db_error(exc)}")
             continue
 
@@ -323,6 +327,7 @@ async def _import_sedes(
                 db.add(sede)
                 await db.flush()
         except Exception as exc:  # noqa: BLE001
+            logger.exception("Error importando sede en la fila %s", index)
             _add_error(report, index, f"No se pudo crear la sede: {_friendly_db_error(exc)}")
             continue
 
@@ -374,6 +379,15 @@ async def _import_planes(
             if materias_raw
             else []
         )
+        too_long = next((name for name in materia_names if len(name) > 100), None)
+        if too_long is not None:
+            _add_error(
+                report,
+                index,
+                f"El nombre de materia '{too_long}' no puede superar 100 caracteres "
+                f"(tiene {len(too_long)}).",
+            )
+            continue
 
         try:
             row_created_related: list[ImportCreatedRelated] = []
@@ -386,12 +400,13 @@ async def _import_planes(
                     descripcion=descripcion,
                 )
                 db.add(plan)
-                await db.flush()
 
                 materias: list[Materia] = []
-                added_ids: set[int] = set()
+                added_keys: set[tuple[str, str]] = set()
                 for materia_name in materia_names:
                     materia_key = _key(materia_name, nivel)
+                    if materia_key in added_keys:
+                        continue
                     materia = materias_by_key.get(materia_key)
                     if materia is None:
                         materia = Materia(
@@ -401,7 +416,6 @@ async def _import_planes(
                             descripcion=None,
                         )
                         db.add(materia)
-                        await db.flush()
                         materias_by_key[materia_key] = materia
                         new_materia_keys.append(materia_key)
                         row_created_related.append(
@@ -411,13 +425,13 @@ async def _import_planes(
                                 detalle=f"Creada desde el plan {nombre} (fila {index}).",
                             )
                         )
-                    if materia.id not in added_ids:
-                        materias.append(materia)
-                        added_ids.add(materia.id)
+                    materias.append(materia)
+                    added_keys.add(materia_key)
 
                 plan.materias = materias
                 await db.flush()
         except Exception as exc:  # noqa: BLE001
+            logger.exception("Error importando plan en la fila %s", index)
             for materia_key in new_materia_keys:
                 materias_by_key.pop(materia_key, None)
             _add_error(report, index, f"No se pudo crear el plan: {_friendly_db_error(exc)}")
@@ -566,6 +580,7 @@ async def _import_usuarios(
                 db.add(user)
                 await db.flush()
         except Exception as exc:  # noqa: BLE001
+            logger.exception("Error importando usuario en la fila %s", index)
             _add_error(report, index, f"No se pudo crear el usuario: {_friendly_db_error(exc)}")
             continue
 
