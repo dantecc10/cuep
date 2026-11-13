@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import func, or_, select
 
 from app.core.database import get_async_db
 from app.core.dependencies import require_role, get_current_user, get_current_user_optional, can_manage_sede
@@ -22,12 +22,40 @@ router = APIRouter(prefix="/sedes", tags=["sedes"])
 
 
 @router.get("", response_model=list[SedeRead])
-async def list_sedes(include_deleted: bool = Query(default=False), include_inactive: bool = Query(default=False), db: AsyncSession = Depends(get_async_db), user: User | None = Depends(get_current_user_optional)):
+async def list_sedes(
+    include_deleted: bool = Query(default=False),
+    include_inactive: bool = Query(default=False),
+    search: str | None = Query(default=None),
+    activo: bool | None = Query(default=None),
+    sort_by: str = Query(default="nombre"),
+    sort_dir: str = Query(default="asc"),
+    db: AsyncSession = Depends(get_async_db),
+    user: User | None = Depends(get_current_user_optional),
+):
     stmt = select(Sede)
     if not include_deleted or (user is None or user.role != "admin"):
         stmt = stmt.where(Sede.deleted_at.is_(None))
     if not include_inactive or (user is None or user.role != "admin"):
         stmt = stmt.where(Sede.activo.isnot(False))
+    elif activo is not None:
+        stmt = stmt.where(Sede.activo == activo)
+    if search:
+        term = f"%{search.strip()}%"
+        stmt = stmt.where(
+            or_(
+                Sede.nombre.ilike(term),
+                Sede.ciudad.ilike(term),
+                Sede.codigo.ilike(term),
+            )
+        )
+    sort_fields = {
+        "nombre": Sede.nombre,
+        "ciudad": Sede.ciudad,
+        "codigo": Sede.codigo,
+        "id": Sede.id,
+    }
+    sort_column = sort_fields.get(sort_by, Sede.nombre)
+    stmt = stmt.order_by(sort_column.desc() if sort_dir.lower() == "desc" else sort_column.asc())
     result = await db.execute(stmt)
     return result.scalars().all()
 

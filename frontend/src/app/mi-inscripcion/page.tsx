@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { AppShell } from "@/components/layout/app-shell";
@@ -26,6 +26,9 @@ export default function MiInscripcionPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [error, setError] = useState("");
+  const [groupSearch, setGroupSearch] = useState("");
+  const [groupSort, setGroupSort] = useState("materia-asc");
+  const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -59,6 +62,24 @@ export default function MiInscripcionPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const filteredGroups = useMemo(() => {
+    const term = groupSearch.trim().toLocaleLowerCase("es");
+    const list = groups.filter((group) => {
+      if (onlyAvailable && group.disponibles <= 0) return false;
+      if (!term) return true;
+      return [group.materia, group.nombre]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase("es")
+        .includes(term);
+    });
+    return [...list].sort((a, b) => {
+      if (groupSort === "nombre-asc") return a.nombre.localeCompare(b.nombre, "es");
+      if (groupSort === "cupo-desc") return b.disponibles - a.disponibles || a.nombre.localeCompare(b.nombre, "es");
+      return a.materia.localeCompare(b.materia, "es") || a.nombre.localeCompare(b.nombre, "es");
+    });
+  }, [groups, groupSearch, groupSort, onlyAvailable]);
+
   async function enroll(grupoId: number) {
     const headers = { Authorization: `Bearer ${token}` };
     await api.post("/enrollments", { grupo_id: grupoId }, { headers });
@@ -85,11 +106,43 @@ export default function MiInscripcionPage() {
 
         <Card>
           <CardHeader><CardTitle>Grupos disponibles</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                value={groupSearch}
+                onChange={(event) => setGroupSearch(event.target.value)}
+                placeholder="Buscar materia o grupo..."
+                aria-label="Buscar grupo disponible"
+                className="h-10 flex-1 border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+              />
+              <select
+                aria-label="Ordenar grupos"
+                className="h-10 border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                value={groupSort}
+                onChange={(event) => setGroupSort(event.target.value)}
+              >
+                <option value="materia-asc">Materia A-Z</option>
+                <option value="nombre-asc">Grupo A-Z</option>
+                <option value="cupo-desc">Más cupo</option>
+              </select>
+              <label className="flex items-center gap-2 text-xs text-ink/60">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-[#A92730]"
+                  checked={onlyAvailable}
+                  onChange={(event) => setOnlyAvailable(event.target.checked)}
+                />
+                Solo con cupo
+              </label>
+            </div>
             {groups.length === 0 ? (
               <p className="text-sm text-ink/55">Aún no hay grupos disponibles para tu sede y nivel.</p>
-            ) : groups.map((g) => (
-              <div key={g.id} className="flex items-center justify-between border border-primary bg-surface rounded-card p-3">
+            ) : filteredGroups.length === 0 ? (
+              <p className="border border-dashed border-ink/20 bg-sand/30 px-3 py-4 text-xs text-ink/55">
+                No hay grupos que coincidan con la búsqueda.
+              </p>
+            ) : filteredGroups.map((g) => (
+              <div key={g.id} className="flex flex-wrap items-center justify-between gap-2 border border-primary bg-surface rounded-card p-3">
                 <span>{g.materia} — {g.nombre} (cupo {g.ocupados}/{g.capacidad})</span>
                 <Button size="sm" onClick={() => enroll(g.id)} disabled={g.disponibles <= 0}>Inscribirme</Button>
               </div>

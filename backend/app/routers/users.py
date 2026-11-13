@@ -1,14 +1,16 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_async_db
-from app.core.dependencies import require_role, get_current_user
+from app.core.dependencies import get_current_user, require_role
 from app.core.roles import VALID_ROLES
+from app.core.security import get_password_hash
 from app.models.sede import Sede
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead, TeachingUpdate, UserUpdate
-from app.core.security import get_password_hash
+from app.schemas.user import TeachingUpdate, UserCreate, UserRead, UserUpdate
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
 
@@ -43,7 +45,11 @@ async def me(user: User = Depends(require_role("admin", "coordinador", "tutor"))
 
 
 @router.post("", response_model=UserRead, status_code=201)
-async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_async_db), user=Depends(require_role("admin"))):
+async def create_user(
+    payload: UserCreate,
+    db: AsyncSession = Depends(get_async_db),
+    user=Depends(require_role("admin")),
+):
     _validate_role(payload.role)
     await _validate_sede(db, payload.sede_id)
     if await _email_taken(db, payload.email):
@@ -68,7 +74,11 @@ async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_async_
 
 
 @router.put("/me/teaching")
-async def update_teaching(payload: TeachingUpdate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
+async def update_teaching(
+    payload: TeachingUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
     if user.role not in ("admin", "coordinador", "subcoordinador"):
         raise HTTPException(status_code=403, detail="No autorizado")
     if user.role == "tutor" and not payload.enabled:
@@ -79,13 +89,57 @@ async def update_teaching(payload: TeachingUpdate, user: User = Depends(get_curr
 
 
 @router.get("", response_model=list[UserRead])
-async def list_users(db: AsyncSession = Depends(get_async_db), user=Depends(require_role("admin"))):
-    result = await db.execute(select(User).where(User.deleted_at.is_(None)))
+async def list_users(
+    search: str | None = Query(default=None),
+    role: str | None = Query(default=None),
+    sede_id: int | None = Query(default=None),
+    is_active: bool | None = Query(default=None),
+    es_tutor: bool | None = Query(default=None),
+    sort_by: str = Query(default="nombre"),
+    sort_dir: str = Query(default="asc"),
+    db: AsyncSession = Depends(get_async_db),
+    user=Depends(require_role("admin")),
+):
+    stmt = select(User).where(User.deleted_at.is_(None))
+    if search:
+        term = f"%{search.strip()}%"
+        stmt = stmt.where(
+            or_(
+                User.nombre.ilike(term),
+                User.apellido_paterno.ilike(term),
+                User.apellido_materno.ilike(term),
+                User.email.ilike(term),
+            )
+        )
+    if role:
+        stmt = stmt.where(User.role == role)
+    if sede_id is not None:
+        stmt = stmt.where(User.sede_id == sede_id)
+    if is_active is not None:
+        stmt = stmt.where(User.is_active == is_active)
+    if es_tutor is not None:
+        stmt = stmt.where(User.es_tutor == es_tutor)
+    sort_fields = {
+        "nombre": User.nombre,
+        "apellido_paterno": User.apellido_paterno,
+        "email": User.email,
+        "role": User.role,
+        "sede_id": User.sede_id,
+        "id": User.id,
+    }
+    sort_column = sort_fields.get(sort_by, User.nombre)
+    stmt = stmt.order_by(sort_column.desc() if sort_dir.lower() == "desc" else sort_column.asc())
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
 @router.patch("/{user_id}", response_model=UserRead)
-async def update_user(user_id: int, payload: UserUpdate, db: AsyncSession = Depends(get_async_db), user=Depends(require_role("admin"))):
+async def update_user(
+    user_id: int,
+    payload: UserUpdate,
+    db: AsyncSession = Depends(get_async_db),
+    user=Depends(require_role("admin")),
+):
     target = await db.get(User, user_id)
     if target is None or target.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -106,7 +160,11 @@ async def update_user(user_id: int, payload: UserUpdate, db: AsyncSession = Depe
 
 
 @router.delete("/{user_id}", status_code=204)
-async def delete_user(user_id: int, user: User = Depends(require_role("admin")), db: AsyncSession = Depends(get_async_db)):
+async def delete_user(
+    user_id: int,
+    user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_async_db),
+):
     target = await db.get(User, user_id)
     if target is None or target.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")

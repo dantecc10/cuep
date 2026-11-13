@@ -7,6 +7,7 @@ class MateriaCreate(BaseModel):
     nivel: str
     area: str
     descripcion: Optional[str] = None
+    planes_count: int = 0
 
 
 class MateriaRead(BaseModel):
@@ -16,3 +17,4 @@ class MateriaRead(BaseModel):
     nivel: str
     area: str
     descripcion: Optional[str] = None
+    planes_count: int = 0

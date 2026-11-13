@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
@@ -31,9 +31,31 @@ export default function DisponibilidadPage() {
   const [days, setDays] = useState<number[]>([1]);
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("14:00");
+  const [materiaSearch, setMateriaSearch] = useState("");
+  const [materiaNivel, setMateriaNivel] = useState("");
+  const [materiaSort, setMateriaSort] = useState("nombre-asc");
   const [selected, setSelected] = useState<Record<number, { pref: number; vetada: boolean }>>({});
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const filteredMaterias = useMemo(() => {
+    const term = materiaSearch.trim().toLocaleLowerCase("es");
+    const list = (materias || []).filter((materia) => {
+      if (materiaNivel && materia.nivel !== materiaNivel) return false;
+      if (!term) return true;
+      return [materia.nombre, materia.area, materia.nivel]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase("es")
+        .includes(term);
+    });
+    return [...list].sort((a, b) => {
+      if (materiaSort === "nombre-desc") return b.nombre.localeCompare(a.nombre, "es");
+      if (materiaSort === "nivel-asc") return a.nivel.localeCompare(b.nivel, "es") || a.nombre.localeCompare(b.nombre, "es");
+      if (materiaSort === "area-asc") return a.area.localeCompare(b.area, "es") || a.nombre.localeCompare(b.nombre, "es");
+      return a.nombre.localeCompare(b.nombre, "es");
+    });
+  }, [materias, materiaSearch, materiaNivel, materiaSort]);
 
   async function save() {
     if (!user) return;
@@ -101,9 +123,71 @@ export default function DisponibilidadPage() {
               <span className="font-mono text-[0.62rem] uppercase tracking-[0.08em] text-ink/40">{Object.keys(selected).length} seleccionadas</span>
             </div>
 
+            <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+              <input
+                value={materiaSearch}
+                onChange={(event) => setMateriaSearch(event.target.value)}
+                placeholder="Buscar materia..."
+                aria-label="Buscar materia"
+                className="h-9 border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+              />
+              <select
+                aria-label="Filtrar materias por nivel"
+                className="h-9 border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                value={materiaNivel}
+                onChange={(event) => setMateriaNivel(event.target.value)}
+              >
+                <option value="">Nivel: todos</option>
+                <option value="PREPA">Preparatoria</option>
+                <option value="LICENCIATURA">Licenciatura</option>
+              </select>
+              <select
+                aria-label="Ordenar materias"
+                className="h-9 border border-ink/25 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
+                value={materiaSort}
+                onChange={(event) => setMateriaSort(event.target.value)}
+              >
+                <option value="nombre-asc">Nombre A-Z</option>
+                <option value="nombre-desc">Nombre Z-A</option>
+                <option value="nivel-asc">Nivel</option>
+                <option value="area-asc">Área</option>
+              </select>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="font-mono text-[0.6rem] uppercase tracking-[0.08em] text-ink/45">
+                {filteredMaterias.length} visibles
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setSelected((current) => ({
+                      ...current,
+                      ...Object.fromEntries(
+                        filteredMaterias
+                          .filter((materia) => !current[materia.id])
+                          .map((materia) => [materia.id, { pref: 1, vetada: false }]),
+                      ),
+                    }))
+                  }
+                >
+                  Seleccionar visibles
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setSelected({})}>
+                  Limpiar selección
+                </Button>
+              </div>
+            </div>
+
             {materias && materias.length > 0 ? (
               <div className="mt-4 max-h-[420px] space-y-2 overflow-auto pr-1">
-                {materias.map((materia) => {
+                {filteredMaterias.length === 0 && (
+                  <p className="border border-dashed border-ink/20 bg-sand/30 px-3 py-4 text-xs text-ink/55">
+                    No hay materias que coincidan con la búsqueda.
+                  </p>
+                )}
+                {filteredMaterias.map((materia) => {
                   const state = selected[materia.id] || { pref: 1, vetada: false };
                   const checked = !!selected[materia.id];
                   return (

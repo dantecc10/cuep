@@ -19,6 +19,7 @@ interface Materia {
   nivel: string;
   area: string;
   descripcion: string | null;
+  planes_count: number;
 }
 
 function toFormValue(materia: Materia): MateriaFormValue {
@@ -50,10 +51,16 @@ export default function MateriasPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["materias"] }),
   });
 
+  const areaOptions = Array.from(new Set((data || []).map((item) => item.area)))
+    .sort((a, b) => a.localeCompare(b, "es"))
+    .map((area) => ({ value: area, label: area }));
+
   const columns: Column<Materia>[] = [
     {
       key: "nombre",
       header: "Materia",
+      sortValue: (item) => item.nombre,
+      searchValue: (item) => `${item.nombre} ${item.area} ${item.descripcion || ""}`,
       render: (item) => (
         <div>
           <p className="font-semibold text-ink">{item.nombre}</p>
@@ -61,8 +68,25 @@ export default function MateriasPage() {
         </div>
       ),
     },
-    { key: "nivel", header: "Nivel", render: (item) => (item.nivel === "PREPA" ? "Preparatoria" : "Licenciatura") },
-    { key: "area", header: "Área" },
+    {
+      key: "nivel",
+      header: "Nivel",
+      sortValue: (item) => item.nivel,
+      render: (item) => (item.nivel === "PREPA" ? "Preparatoria" : "Licenciatura"),
+    },
+    { key: "area", header: "Área", sortValue: (item) => item.area },
+    {
+      key: "planes_count",
+      header: "Planes",
+      sortValue: (item) => item.planes_count,
+      render: (item) => (
+        <span className="font-mono text-[0.62rem] uppercase tracking-[0.06em] text-ink/60">
+          {item.planes_count === 0
+            ? "Sin plan"
+            : `${item.planes_count} ${item.planes_count === 1 ? "plan" : "planes"}`}
+        </span>
+      ),
+    },
     {
       key: "acciones",
       header: "",
@@ -121,7 +145,31 @@ export default function MateriasPage() {
         {!isLoading && (!data || data.length === 0) ? (
           <EmptyState title="Sin materias" description="Agrega la primera materia del catálogo para comenzar a armar planes y grupos." />
         ) : (
-          <DataTable columns={columns} data={data} isLoading={isLoading} keyExtractor={(item) => item.id} />
+          <DataTable
+            columns={columns}
+            data={data}
+            isLoading={isLoading}
+            keyExtractor={(item) => item.id}
+            searchPlaceholder="Buscar por materia, área o descripción"
+            initialSort={{ key: "nombre", direction: "asc" }}
+            filters={[
+              {
+                key: "nivel",
+                label: "Nivel",
+                options: [
+                  { value: "PREPA", label: "Preparatoria" },
+                  { value: "LICENCIATURA", label: "Licenciatura" },
+                ],
+                getValue: (item) => item.nivel,
+              },
+              {
+                key: "area",
+                label: "Área",
+                options: areaOptions,
+                getValue: (item) => item.area,
+              },
+            ]}
+          />
         )}
 
         <MateriaFormDialog

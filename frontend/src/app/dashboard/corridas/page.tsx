@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DataTable, type Column } from "@/components/shared/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { SearchableSelect } from "@/components/shared/searchable-select";
 
 interface Sede { id: number; nombre: string; }
 interface Corrida { id: number; sede_id: number | null; estado: string; aprobada: boolean; publicada: boolean; progreso: number; etapa: string | null; }
@@ -35,12 +36,37 @@ export default function CorridasPage() {
   }, [sedeId, sedes]);
 
   const columns: Column<Corrida>[] = [
-    { key: "id", header: "Corrida", render: (item) => <span className="font-mono text-xs font-bold">#{item.id}</span> },
-    { key: "sede_id", header: "Sede", render: (item) => sedes?.find((sede) => sede.id === item.sede_id)?.nombre || `Sede ${item.sede_id ?? "—"}` },
-    { key: "estado", header: "Estado", render: (item) => <StatusBadge status={item.estado} /> },
-    { key: "progreso", header: "Progreso", render: (item) => `${item.progreso ?? 0}%${item.etapa ? ` · ${item.etapa}` : ""}` },
-    { key: "aprobada", header: "Aprobada", render: (item) => <StatusBadge status={item.aprobada ? "APROBADA" : "PENDIENTE"} /> },
-    { key: "publicada", header: "Publicada", render: (item) => <StatusBadge status={item.publicada ? "PUBLICADA" : "PENDIENTE"} /> },
+    {
+      key: "id",
+      header: "Corrida",
+      sortValue: (item) => item.id,
+      render: (item) => <span className="font-mono text-xs font-bold">#{item.id}</span>,
+    },
+    {
+      key: "sede_id",
+      header: "Sede",
+      sortValue: (item) => sedes?.find((sede) => sede.id === item.sede_id)?.nombre || "",
+      render: (item) => sedes?.find((sede) => sede.id === item.sede_id)?.nombre || `Sede ${item.sede_id ?? "—"}`,
+    },
+    { key: "estado", header: "Estado", sortValue: (item) => item.estado, render: (item) => <StatusBadge status={item.estado} /> },
+    {
+      key: "progreso",
+      header: "Progreso",
+      sortValue: (item) => item.progreso,
+      render: (item) => `${item.progreso ?? 0}%${item.etapa ? ` · ${item.etapa}` : ""}`,
+    },
+    {
+      key: "aprobada",
+      header: "Aprobada",
+      sortValue: (item) => (item.aprobada ? 1 : 0),
+      render: (item) => <StatusBadge status={item.aprobada ? "APROBADA" : "PENDIENTE"} />,
+    },
+    {
+      key: "publicada",
+      header: "Publicada",
+      sortValue: (item) => (item.publicada ? 1 : 0),
+      render: (item) => <StatusBadge status={item.publicada ? "PUBLICADA" : "PENDIENTE"} />,
+    },
   ];
 
   return (
@@ -56,14 +82,17 @@ export default function CorridasPage() {
           <div className="grid gap-4 md:grid-cols-[0.8fr_1.2fr_auto] md:items-end">
             <div className="space-y-2">
               <Label htmlFor="corrida-sede">Sede</Label>
-              <select
+              <SearchableSelect
                 id="corrida-sede"
-                className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                value={sedeId}
-                onChange={(e) => setSedeId(Number(e.target.value))}
-              >
-                {(sedes || []).map((sede) => <option key={sede.id} value={sede.id}>{sede.nombre}</option>)}
-              </select>
+                value={sedeId ? String(sedeId) : ""}
+                onChange={(value) => setSedeId(Number(value))}
+                options={(sedes || []).map((sede) => ({
+                  value: String(sede.id),
+                  label: sede.nombre,
+                }))}
+                placeholder="Selecciona una sede"
+                searchPlaceholder="Buscar sede..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="corrida-grupos">IDs de grupos</Label>
@@ -76,7 +105,42 @@ export default function CorridasPage() {
         {!isLoading && (!data || data.length === 0) ? (
           <EmptyState title="Sin corridas" description="Crea la primera corrida para esta sede y espera el resultado del optimizador." />
         ) : (
-          <DataTable columns={columns} data={data} isLoading={isLoading} keyExtractor={(item) => item.id} />
+          <DataTable
+            columns={columns}
+            data={data}
+            isLoading={isLoading}
+            keyExtractor={(item) => item.id}
+            searchPlaceholder="Buscar por folio o sede"
+            initialSort={{ key: "id", direction: "desc" }}
+            filters={[
+              {
+                key: "sede_id",
+                label: "Sede",
+                options: (sedes || []).map((sede) => ({ value: String(sede.id), label: sede.nombre })),
+                getValue: (item) => (item.sede_id ? String(item.sede_id) : ""),
+              },
+              {
+                key: "estado",
+                label: "Estado",
+                options: [
+                  { value: "PENDIENTE", label: "Pendiente" },
+                  { value: "PROCESANDO", label: "Procesando" },
+                  { value: "COMPLETADO", label: "Completado" },
+                  { value: "ERROR", label: "Error" },
+                ],
+                getValue: (item) => item.estado,
+              },
+              {
+                key: "publicada",
+                label: "Publicación",
+                options: [
+                  { value: "true", label: "Publicadas" },
+                  { value: "false", label: "Sin publicar" },
+                ],
+                getValue: (item) => String(item.publicada),
+              },
+            ]}
+          />
         )}
       </div>
     </AppShell>

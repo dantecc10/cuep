@@ -34,10 +34,25 @@ export default function InscripcionesPage() {
   });
 
   const columns: Column<Enrollment>[] = [
-    { key: "id", header: "Folio", render: (item) => <span className="font-mono text-xs font-bold">#{item.id}</span> },
+    {
+      key: "id",
+      header: "Folio",
+      sortValue: (item) => item.id,
+      render: (item) => <span className="font-mono text-xs font-bold">#{item.id}</span>,
+    },
     {
       key: "estudiante",
       header: "Alumno / grupo",
+      sortValue: (item) => item.student_name || "",
+      searchValue: (item) =>
+        [
+          item.student_name,
+          item.student_matricula,
+          item.materia_name,
+          item.grupo_name,
+        ]
+          .filter(Boolean)
+          .join(" "),
       render: (item) => (
         <div>
           <p className="font-semibold text-ink">{item.student_name || `Alumno #${item.student_id}`}</p>
@@ -51,6 +66,7 @@ export default function InscripcionesPage() {
     {
       key: "estado",
       header: "Estado",
+      sortValue: (item) => item.estado,
       render: (item) => (
         <select
           aria-label={`Estado de inscripción ${item.id}`}
@@ -65,7 +81,12 @@ export default function InscripcionesPage() {
         </select>
       ),
     },
-    { key: "payment_status", header: "Pago", render: (item) => <StatusBadge status={item.payment_status === "pagado" ? "confirmada" : item.payment_status} /> },
+    {
+      key: "payment_status",
+      header: "Pago",
+      sortValue: (item) => item.payment_status,
+      render: (item) => <StatusBadge status={item.payment_status === "pagado" ? "confirmada" : item.payment_status} />,
+    },
     {
       key: "acciones",
       header: "",
@@ -85,7 +106,37 @@ export default function InscripcionesPage() {
         {!isLoading && (!data || data.length === 0) ? (
           <EmptyState title="Sin inscripciones" description="Cuando las y los estudiantes elijan sus grupos, las inscripciones aparecerán aquí." />
         ) : (
-          <DataTable columns={columns} data={data} isLoading={isLoading} keyExtractor={(item) => item.id} />
+          <DataTable
+            columns={columns}
+            data={data}
+            isLoading={isLoading}
+            keyExtractor={(item) => item.id}
+            searchPlaceholder="Buscar alumno, matrícula, materia o grupo"
+            initialSort={{ key: "id", direction: "desc" }}
+            filters={[
+              {
+                key: "estado",
+                label: "Estado",
+                options: [
+                  { value: "confirmada", label: "Confirmada" },
+                  { value: "pendiente_pago", label: "Pendiente de pago" },
+                  { value: "lista_espera", label: "Lista de espera" },
+                  { value: "cancelada", label: "Cancelada" },
+                ],
+                getValue: (item) => item.estado,
+              },
+              {
+                key: "payment_status",
+                label: "Pago",
+                options: [
+                  { value: "pagado", label: "Pagado" },
+                  { value: "pendiente", label: "Pendiente" },
+                  { value: "no_requerido", label: "No requerido" },
+                ],
+                getValue: (item) => item.payment_status,
+              },
+            ]}
+          />
         )}
       </div>
     </AppShell>

@@ -11,6 +11,7 @@ import { DataTable, type Column } from "@/components/shared/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SedeFormDialog, type SedeFormValue } from "@/components/shared/sede-form-dialog";
+import { SedeResponsablesDialog } from "@/components/shared/sede-responsables-dialog";
 import { ImportDialog } from "@/components/shared/import-dialog";
 
 interface Sede {
@@ -44,6 +45,7 @@ export default function SedesPage() {
   const { confirm, dialog } = useConfirmDialog();
   const [formOpen, setFormOpen] = useState(false);
   const [editingSede, setEditingSede] = useState<SedeFormValue | null>(null);
+  const [responsablesSede, setResponsablesSede] = useState<Sede | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
   const { data, isLoading } = useQuery<Sede[]>({
@@ -57,15 +59,32 @@ export default function SedesPage() {
   });
 
   const columns: Column<Sede>[] = [
-    { key: "nombre", header: "Nombre" },
-    { key: "codigo", header: "Código" },
-    { key: "ciudad", header: "Ciudad" },
-    { key: "activo", header: "Activo", render: (item) => (item.activo ? "Sí" : "No") },
+    {
+      key: "nombre",
+      header: "Nombre",
+      sortValue: (item) => item.nombre,
+      searchValue: (item) => [item.nombre, item.ciudad, item.codigo].filter(Boolean).join(" "),
+    },
+    { key: "codigo", header: "Código", sortValue: (item) => item.codigo || "" },
+    { key: "ciudad", header: "Ciudad", sortValue: (item) => item.ciudad || "" },
+    {
+      key: "activo",
+      header: "Activo",
+      sortValue: (item) => (item.activo ? 1 : 0),
+      render: (item) => (item.activo ? "Sí" : "No"),
+    },
     {
       key: "acciones",
       header: "Acciones",
       render: (item) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setResponsablesSede(item)}
+          >
+            Responsables
+          </Button>
           <Button
             size="sm"
             variant="outline"
@@ -117,7 +136,25 @@ export default function SedesPage() {
         {!isLoading && (!data || data.length === 0) ? (
           <EmptyState title="Sin sedes" description="Crea la primera sede del colectivo." />
         ) : (
-          <DataTable columns={columns} data={data} isLoading={isLoading} keyExtractor={(item) => item.id} />
+          <DataTable
+            columns={columns}
+            data={data}
+            isLoading={isLoading}
+            keyExtractor={(item) => item.id}
+            searchPlaceholder="Buscar por nombre, ciudad o código"
+            initialSort={{ key: "nombre", direction: "asc" }}
+            filters={[
+              {
+                key: "activo",
+                label: "Estado",
+                options: [
+                  { value: "true", label: "Activas" },
+                  { value: "false", label: "Inactivas" },
+                ],
+                getValue: (item) => String(item.activo),
+              },
+            ]}
+          />
         )}
         <SedeFormDialog
           open={formOpen}
@@ -130,6 +167,14 @@ export default function SedesPage() {
           open={importOpen}
           onOpenChange={setImportOpen}
           onImported={() => queryClient.invalidateQueries({ queryKey: ["sedes"] })}
+        />
+        <SedeResponsablesDialog
+          open={Boolean(responsablesSede)}
+          onOpenChange={(next) => {
+            if (!next) setResponsablesSede(null);
+          }}
+          sede={responsablesSede}
+          onSaved={() => queryClient.invalidateQueries({ queryKey: ["sedes"] })}
         />
         {dialog}
       </div>

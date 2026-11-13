@@ -12,9 +12,10 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DataTable, type Column } from "@/components/shared/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useConfirmDialog } from "@/components/shared/confirm-dialog";
+import { SearchableSelect } from "@/components/shared/searchable-select";
 
 interface Sede { id: number; nombre: string; }
-interface Materia { id: number; nombre: string; }
+interface Materia { id: number; nombre: string; nivel: string; }
 interface Grupo { id: number; nombre: string; materia_id: number; horas_totales: number; capacidad: number; min_alumnos: number; }
 
 export default function GruposPage() {
@@ -22,8 +23,8 @@ export default function GruposPage() {
   const headers = { Authorization: `Bearer ${token}` };
   const queryClient = useQueryClient();
   const { confirm, dialog } = useConfirmDialog();
-  const [sedeId, setSedeId] = useState(1);
-  const [materiaId, setMateriaId] = useState(1);
+  const [sedeId, setSedeId] = useState(0);
+  const [materiaId, setMateriaId] = useState(0);
   const [nombre, setNombre] = useState("");
   const [horas, setHoras] = useState(4);
   const [capacidad, setCapacidad] = useState(30);
@@ -31,7 +32,8 @@ export default function GruposPage() {
 
   const { data: sedes } = useQuery<Sede[]>({ queryKey: ["sedes"], queryFn: async () => (await api.get("/sedes", { headers })).data });
   const { data: materias } = useQuery<Materia[]>({ queryKey: ["materias"], queryFn: async () => (await api.get("/materias", { headers })).data });
-  const { data: grupos, isLoading } = useQuery<Grupo[]>({ queryKey: ["grupos", sedeId], queryFn: async () => (await api.get(`/sedes/${sedeId}/grupos`, { headers })).data });
+  const materiaName = new Map((materias || []).map((materia) => [materia.id, materia.nombre]));
+  const { data: grupos, isLoading } = useQuery<Grupo[]>({ queryKey: ["grupos", sedeId], queryFn: async () => (await api.get(`/sedes/${sedeId}/grupos`, { headers })).data, enabled: Boolean(sedeId) });
 
   useEffect(() => {
     if (!sedeId && sedes?.length) setSedeId(sedes[0].id);
@@ -52,16 +54,18 @@ export default function GruposPage() {
     {
       key: "nombre",
       header: "Grupo",
+      sortValue: (item) => item.nombre,
+      searchValue: (item) => `${item.nombre} ${materiaName.get(item.materia_id) || ""}`,
       render: (item) => (
         <div>
           <p className="font-semibold text-ink">{item.nombre}</p>
-          <p className="text-xs text-ink/50">Materia #{item.materia_id}</p>
+          <p className="text-xs text-ink/50">{materiaName.get(item.materia_id) || `Materia #${item.materia_id}`}</p>
         </div>
       ),
     },
-    { key: "horas_totales", header: "Horas", render: (item) => `${item.horas_totales} h` },
-    { key: "capacidad", header: "Capacidad", render: (item) => `${item.capacidad} lugares` },
-    { key: "min_alumnos", header: "Mínimo", render: (item) => `${item.min_alumnos} alumnos` },
+    { key: "horas_totales", header: "Horas", sortValue: (item) => item.horas_totales, render: (item) => `${item.horas_totales} h` },
+    { key: "capacidad", header: "Capacidad", sortValue: (item) => item.capacidad, render: (item) => `${item.capacidad} lugares` },
+    { key: "min_alumnos", header: "Mínimo", sortValue: (item) => item.min_alumnos, render: (item) => `${item.min_alumnos} alumnos` },
     {
       key: "acciones",
       header: "",
@@ -93,25 +97,32 @@ export default function GruposPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="grupo-sede">Sede</Label>
-              <select
+              <SearchableSelect
                 id="grupo-sede"
-                className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                value={sedeId}
-                onChange={(e) => setSedeId(Number(e.target.value))}
-              >
-                {(sedes || []).map((sede) => <option key={sede.id} value={sede.id}>{sede.nombre}</option>)}
-              </select>
+                value={sedeId ? String(sedeId) : ""}
+                onChange={(value) => setSedeId(Number(value))}
+                options={(sedes || []).map((sede) => ({
+                  value: String(sede.id),
+                  label: sede.nombre,
+                }))}
+                placeholder="Selecciona una sede"
+                searchPlaceholder="Buscar sede..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="grupo-materia">Materia</Label>
-              <select
+              <SearchableSelect
                 id="grupo-materia"
-                className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                value={materiaId}
-                onChange={(e) => setMateriaId(Number(e.target.value))}
-              >
-                {(materias || []).map((materia) => <option key={materia.id} value={materia.id}>{materia.nombre}</option>)}
-              </select>
+                value={materiaId ? String(materiaId) : ""}
+                onChange={(value) => setMateriaId(Number(value))}
+                options={(materias || []).map((materia) => ({
+                  value: String(materia.id),
+                  label: materia.nombre,
+                  description: materia.nivel,
+                }))}
+                placeholder="Selecciona una materia"
+                searchPlaceholder="Buscar materia..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="grupo-nombre">Nombre del grupo</Label>
@@ -136,7 +147,14 @@ export default function GruposPage() {
         {!isLoading && (!grupos || grupos.length === 0) ? (
           <EmptyState title="Sin grupos" description="Abre el primer grupo de esta sede para comenzar a organizar las asesorías." />
         ) : (
-          <DataTable columns={columns} data={grupos} isLoading={isLoading} keyExtractor={(item) => item.id} />
+          <DataTable
+            columns={columns}
+            data={grupos}
+            isLoading={isLoading}
+            keyExtractor={(item) => item.id}
+            searchPlaceholder="Buscar grupo o materia"
+            initialSort={{ key: "nombre", direction: "asc" }}
+          />
         )}
         {dialog}
       </div>

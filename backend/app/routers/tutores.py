@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import delete, or_, select
 from app.core.database import get_async_db
 from app.core.dependencies import require_role, get_current_user
 from app.models.user import User
@@ -15,8 +15,37 @@ router = APIRouter(prefix="/tutores", tags=["tutores"])
 
 
 @router.get("", response_model=list[UserRead])
-async def list_tutores(db: AsyncSession = Depends(get_async_db), user=Depends(require_role("admin", "coordinador"))):
-    result = await db.execute(select(User).where(User.es_tutor.is_(True)))
+async def list_tutores(
+    search: str | None = None,
+    sede_id: int | None = None,
+    sort_by: str = "nombre",
+    sort_dir: str = "asc",
+    db: AsyncSession = Depends(get_async_db),
+    user=Depends(require_role("admin", "coordinador", "subcoordinador")),
+):
+    stmt = select(User).where(User.es_tutor.is_(True), User.deleted_at.is_(None))
+    if search:
+        term = f"%{search.strip()}%"
+        stmt = stmt.where(
+            or_(
+                User.nombre.ilike(term),
+                User.apellido_paterno.ilike(term),
+                User.apellido_materno.ilike(term),
+                User.email.ilike(term),
+            )
+        )
+    if sede_id is not None:
+        stmt = stmt.where(User.sede_id == sede_id)
+    sort_fields = {
+        "nombre": User.nombre,
+        "apellido_paterno": User.apellido_paterno,
+        "email": User.email,
+        "sede_id": User.sede_id,
+        "id": User.id,
+    }
+    sort_column = sort_fields.get(sort_by, User.nombre)
+    stmt = stmt.order_by(sort_column.desc() if sort_dir.lower() == "desc" else sort_column.asc())
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 

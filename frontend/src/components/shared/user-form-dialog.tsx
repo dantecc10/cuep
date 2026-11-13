@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/api-error";
+import { SearchableSelect } from "@/components/shared/searchable-select";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,24 +218,23 @@ export function UserFormDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-sede">Sede</Label>
-              <select
+              <SearchableSelect
                 id="user-sede"
-                className="h-10 w-full border border-ink/30 bg-surface px-3 text-sm text-ink outline-none focus-visible:border-primary"
-                value={form.sede_id ?? ""}
-                onChange={(event) =>
+                value={form.sede_id ? String(form.sede_id) : ""}
+                onChange={(value) =>
                   setForm({
                     ...form,
-                    sede_id: event.target.value ? Number(event.target.value) : null,
+                    sede_id: value ? Number(value) : null,
                   })
                 }
-              >
-                <option value="">Sin sede</option>
-                {(sedes || []).map((sede) => (
-                  <option key={sede.id} value={sede.id}>
-                    {sede.nombre}
-                  </option>
-                ))}
-              </select>
+                options={(sedes || []).map((sede) => ({
+                  value: String(sede.id),
+                  label: sede.nombre,
+                }))}
+                placeholder="Sin sede"
+                searchPlaceholder="Buscar sede..."
+                clearLabel="Sin sede"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-telefono">Teléfono</Label>
