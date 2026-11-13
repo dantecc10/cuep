@@ -7,9 +7,10 @@ from app.models.two_factor import RecoveryCode, TwoFactorChallenge, TrustedDevic
 from app.models.student import Student, Enrollment
 from app.models.plan import PlanEstudio
 from app.models.horario import ConfiguracionHorarioDia
+from app.models.asistencia import SesionClase
 
 __all__ = ["Student", "Enrollment", "PlanEstudio",
     "User", "Materia", "DisponibilidadTutor", "TutorMateria", "Sede", "Grupo",
     "CorridaHorario", "RecoveryCode", "TwoFactorChallenge", "TrustedDevice",
-    "TwoFactorAuditLog", "ConfiguracionHorarioDia",
+    "TwoFactorAuditLog", "ConfiguracionHorarioDia", "SesionClase",
 ]

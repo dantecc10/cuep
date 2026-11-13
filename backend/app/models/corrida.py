@@ -1,5 +1,5 @@
-from datetime import datetime
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from datetime import date, datetime
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
@@ -20,6 +20,8 @@ class CorridaHorario(Base):
     aprobada: Mapped[bool] = mapped_column(Boolean, default=False)
     aprobada_por: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     aprobada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    fecha_inicio: Mapped[date | None] = mapped_column(Date)
+    fecha_fin: Mapped[date | None] = mapped_column(Date)
     publicada: Mapped[bool] = mapped_column(Boolean, default=False)
     publicada_por: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     publicada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

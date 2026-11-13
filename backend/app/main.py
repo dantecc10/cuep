@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.database import engine
 from app.core.limiter import limiter
-from app.routers import auth, users, materias, sedes, tutores, corridas, worker, two_factor, students, planes, uploads, imports, horario
+from app.routers import asistencia, auth, users, materias, sedes, tutores, corridas, worker, two_factor, students, planes, uploads, imports, horario
 from app.services.storage import log_r2_config
 
 @asynccontextmanager
@@ -40,6 +40,7 @@ app.include_router(corridas.router, prefix="/api/v1")
 app.include_router(uploads.router, prefix="/api/v1")
 app.include_router(worker.router, prefix="/api/v1")
 app.include_router(horario.router, prefix="/api/v1")
+app.include_router(asistencia.router, prefix="/api/v1")
 
 @app.get("/health")
 async def health():
