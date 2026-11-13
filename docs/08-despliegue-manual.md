@@ -54,6 +54,25 @@ alembic upgrade head
 python seeds/load.py
 ```
 
+### Datos demo para staging
+
+El seed demo es idempotente: reutiliza sedes, planes, materias y tutores existentes y solo crea lo que falta. Antes de ejecutarlo en un servidor compartido, genera un respaldo de la base:
+
+```bash
+sudo -u postgres pg_dump -Fc cuep > /opt/cuep/backups/cuep-pre-seed-$(date +%F-%H%M%S).dump
+```
+
+Después valida y ejecuta:
+
+```bash
+cd /opt/cuep/backend
+source .venv/bin/activate
+python seeds/seed_demo.py --dry-run
+SEED_TUTOR_PASSWORD='CAMBIAR' python seeds/seed_demo.py
+```
+
+El seed crea 30 tutores por sede para las 6 sedes objetivo, completa los 5 planes existentes a 12 materias cada uno, asigna disponibilidad y crea un grupo demo por plan y sede. Los emails usan `tutor-<codigo>-01..30@cuep.example.com`, porque los dominios `.local` son rechazados por la validación de email. Todos los tutores comparten la contraseña definida en `SEED_TUTOR_PASSWORD`.
+
 ### Variables de entorno (backend/.env)
 
 ```text
