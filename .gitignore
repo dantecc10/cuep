@@ -16,6 +16,7 @@ frontend/.env.production
 # DB / local
 *.sqlite
 *.db
+backups/
 
 # OS
 .DS_Store
