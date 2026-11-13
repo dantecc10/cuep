@@ -4,10 +4,10 @@ from pydantic import BaseModel, Field
 
 
 class HorarioDia(BaseModel):
-    dia_semana: int = Field(ge=1, le=7)
+    dia: int = Field(ge=1, le=7)
     activo: bool
-    hora_inicio: time
-    hora_fin: time
+    inicio: time
+    fin: time
 
 
 class HorarioConfigUpdate(BaseModel):

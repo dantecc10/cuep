@@ -28,17 +28,17 @@ async def update_configuracion(
 ):
     if len(payload.dias) != 7:
         raise HTTPException(status_code=422, detail="Debes enviar los 7 días de la semana")
-    days = {item.dia_semana: item for item in payload.dias}
+    days = {item.dia: item for item in payload.dias}
     if len(days) != 7:
         raise HTTPException(status_code=422, detail="Los días no pueden repetirse")
     if not any(item.activo for item in payload.dias):
         raise HTTPException(status_code=422, detail="Debe haber al menos un día activo")
     for item in payload.dias:
-        if item.hora_inicio >= item.hora_fin:
-            raise HTTPException(status_code=422, detail=f"El rango del día {item.dia_semana} no es válido")
-        if item.hora_inicio.minute or item.hora_inicio.second or item.hora_fin.minute or item.hora_fin.second:
+        if item.inicio >= item.fin:
+            raise HTTPException(status_code=422, detail=f"El rango del día {item.dia} no es válido")
+        if item.inicio.minute or item.inicio.second or item.fin.minute or item.fin.second:
             raise HTTPException(status_code=422, detail="Los horarios deben ser en horas completas")
-        if item.hora_fin.hour >= 24:
+        if item.fin.hour >= 24:
             raise HTTPException(status_code=422, detail="La hora de fin debe ser anterior a medianoche")
 
     rows_result = await db.execute(select(ConfiguracionHorarioDia))
@@ -50,8 +50,8 @@ async def update_configuracion(
             row = ConfiguracionHorarioDia(dia_semana=day)
             db.add(row)
         row.activo = item.activo
-        row.hora_inicio = item.hora_inicio
-        row.hora_fin = item.hora_fin
+        row.hora_inicio = item.inicio
+        row.hora_fin = item.fin
         row.updated_by = admin.id
         result.append(row)
     await db.flush()
