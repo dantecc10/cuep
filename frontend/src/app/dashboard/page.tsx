@@ -6,7 +6,9 @@ import {
   BadgeCheck,
   BookOpen,
   CalendarClock,
+  Clock,
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
   FileText,
   GraduationCap,
@@ -21,6 +23,7 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { DualMark } from "@/components/layout/dual-mark";
 import { useAuthStore } from "@/store/auth";
+import { MetricsPanel } from "@/components/dashboard/metrics-panel";
 
 type Acceso = { href: string; label: string; description: string; icon: LucideIcon };
 
@@ -29,12 +32,15 @@ const accesos: Record<string, Acceso[]> = {
     { href: "/dashboard/sedes", label: "Sedes", description: "Espacios y ubicaciones del colectivo.", icon: MapPin },
     { href: "/dashboard/planes", label: "Planes", description: "Organiza materias por plan de estudios.", icon: Layers },
     { href: "/dashboard/materias", label: "Materias", description: "Catálogo académico del CUEP.", icon: BookOpen },
+    { href: "/dashboard/horario-cuep", label: "Horario CUEP", description: "Días y rangos de atención del colectivo.", icon: Clock },
+    { href: "/dashboard/asistencia", label: "Asistencia", description: "Registro y cobertura de asesorías.", icon: ClipboardCheck },
     { href: "/dashboard/usuarios", label: "Usuarios", description: "Roles, accesos y coordinaciones.", icon: Users },
   ],
   coordinador: [
     { href: "/dashboard/grupos", label: "Grupos", description: "Abre grupos y revisa cupos.", icon: Users },
     { href: "/dashboard/tutores", label: "Tutores", description: "Carga docente y disponibilidad.", icon: GraduationCap },
     { href: "/dashboard/corridas", label: "Corridas", description: "Genera horarios para tu sede.", icon: PlayCircle },
+    { href: "/dashboard/asistencia", label: "Asistencia", description: "Registra asistencia y clases cubiertas.", icon: ClipboardCheck },
     { href: "/dashboard/inscripciones", label: "Inscripciones", description: "Cupos, espera y pagos.", icon: ClipboardList },
     { href: "/dashboard/publicar", label: "Publicar", description: "Publica horarios aprobados.", icon: Send },
   ],
@@ -42,6 +48,7 @@ const accesos: Record<string, Acceso[]> = {
     { href: "/dashboard/grupos", label: "Grupos", description: "Abre grupos y revisa cupos.", icon: Users },
     { href: "/dashboard/tutores", label: "Tutores", description: "Carga docente y disponibilidad.", icon: GraduationCap },
     { href: "/dashboard/corridas", label: "Corridas", description: "Genera horarios para tu sede.", icon: PlayCircle },
+    { href: "/dashboard/asistencia", label: "Asistencia", description: "Registra asistencia y clases cubiertas.", icon: ClipboardCheck },
     { href: "/dashboard/inscripciones", label: "Inscripciones", description: "Cupos, espera y pagos.", icon: ClipboardList },
     { href: "/dashboard/publicar", label: "Publicar", description: "Publica horarios aprobados.", icon: Send },
   ],
@@ -103,6 +110,8 @@ export default function DashboardPage() {
             </div>
           </div>
         </section>
+
+        <MetricsPanel role={role} />
 
         <section>
           <div className="flex flex-col gap-2 border-b border-ink/15 pb-4 sm:flex-row sm:items-end sm:justify-between">
