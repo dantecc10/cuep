@@ -170,11 +170,27 @@ Hace falta un bucket propio, sin URL pública:
 3. Define `R2_PRIVATE_BUCKET=cuep-private` en `backend/.env` y reinicia
    `cuep-api`.
 
+Puedes reutilizar el mismo token si tiene permisos sobre los dos buckets, pero
+es más seguro crear uno sólo para el privado: en Cloudflare R2, *API Tokens →
+Create Account API Token*, con el permiso **Object Read & Write** limitado al
+bucket privado. El token da el `Access Key ID` y el `Secret Access Key`; el
+`R2_ACCOUNT_ID` es el identificador de la cuenta (aparece en el panel de R2).
+
 Si `R2_PRIVATE_BUCKET` está vacío, la subida de comprobantes responde **503**
 con el mensaje "Falta R2_PRIVATE_BUCKET…": es intencional, para que un
 comprobante nunca acabe en el bucket público. `PAYMENT_PROOF_MAX_BYTES` limita
 el tamaño del archivo (10 MB por defecto); nginx debe permitir al menos ese
 tamaño (`client_max_body_size 10M`).
+
+Para comprobar el token sin desplegar:
+
+```bash
+cd /opt/cuep/backend && source .venv/bin/activate
+python ../scripts/deploy_report.py --probe
+```
+
+`--probe` sube, lee y borra un archivo de prueba en el bucket privado: si
+termina en verde, el token tiene permisos y el bucket existe.
 
 ### Correo (SMTP)
 

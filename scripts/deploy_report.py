@@ -407,7 +407,7 @@ async def revisar_base(env: dict[str, str]) -> None:
         )
 
 
-def revisar_r2(env: dict[str, str]) -> None:
+def revisar_r2(env: dict[str, str], probe: bool = False) -> None:
     seccion("Almacenamiento (Cloudflare R2)")
     credenciales = all(
         env.get(clave, "").strip()
@@ -474,6 +474,27 @@ def revisar_r2(env: dict[str, str]) -> None:
             "Bucket privado (comprobantes)",
             f"No se pudo comprobar {privado}: {type(exc).__name__}. Revisa el token y sus permisos.",
         )
+        return
+
+    if probe:
+        clave = "diagnostico/prueba-cuep.txt"
+        try:
+            cliente.put_object(
+                Bucket=privado, Key=clave, Body=b"prueba CUEP", ContentType="text/plain"
+            )
+            cliente.get_object(Bucket=privado, Key=clave)["Body"].read()
+            cliente.delete_object(Bucket=privado, Key=clave)
+            registrar(
+                OK,
+                "Prueba de escritura (bucket privado)",
+                "subió, leyó y borró un archivo de prueba: el token tiene permisos.",
+            )
+        except Exception as exc:  # noqa: BLE001
+            registrar(
+                FALLA,
+                "Prueba de escritura (bucket privado)",
+                f"No se pudo escribir en {privado}: {type(exc).__name__}: {exc}",
+            )
 
 
 # --------------------------------------------------------------------------
@@ -627,6 +648,11 @@ async def main() -> int:
         "--head",
         help="Revisión de Alembic esperada (la que trae el código desplegado).",
     )
+    parser.add_argument(
+        "--probe",
+        action="store_true",
+        help="Prueba de escritura: sube, lee y borra un archivo en el bucket privado.",
+    )
     args = parser.parse_args()
 
     print(_c(f"{BOLD}Reporte de estado del CUEP{RESET}", "Reporte de estado del CUEP"))
@@ -637,7 +663,7 @@ async def main() -> int:
         revisar_variables(env)
         comprobar_migraciones(args.head)
         await revisar_base(env)
-        revisar_r2(env)
+        revisar_r2(env, probe=args.probe)
     finally:
         await _cerrar_pool()
     return resumen()

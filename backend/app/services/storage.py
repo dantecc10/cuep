@@ -18,13 +18,13 @@ MAX_AVATAR_BYTES = 5 * 1024 * 1024
 
 
 def log_r2_config() -> None:
-    if not r2_configured():
+    if not r2_credentials_configured():
         logger.info("R2 no configurado; las fotos usaran una URL publica.")
         return
     logger.info(
         "R2 config: endpoint=%s bucket=%s key_suffix=%s secret_len=%d public_base=%s",
         settings.r2_endpoint_url,
-        settings.R2_BUCKET,
+        settings.R2_BUCKET or "<sin configurar>",
         settings.R2_ACCESS_KEY_ID[-6:],
         len(settings.R2_SECRET_ACCESS_KEY),
         settings.R2_PUBLIC_BASE or "<sin configurar>",
@@ -33,6 +33,21 @@ def log_r2_config() -> None:
         logger.warning(
             "R2_PUBLIC_BASE apunta al endpoint privado S3; "
             "usa la URL publica r2.dev o un dominio personalizado."
+        )
+    if not settings.R2_PRIVATE_BUCKET:
+        logger.warning(
+            "R2_PRIVATE_BUCKET sin configurar: la subida de comprobantes de pago "
+            "respondera 503 y no se podran validar transferencias con imagen."
+        )
+    elif settings.R2_PRIVATE_BUCKET == settings.R2_BUCKET:
+        logger.warning(
+            "R2_PRIVATE_BUCKET es igual a R2_BUCKET: los comprobantes de pago "
+            "quedarian en el bucket publico. Usa un bucket privado aparte."
+        )
+    else:
+        logger.info(
+            "R2 privado: bucket=%s (comprobantes de pago, solo URLs firmadas)",
+            settings.R2_PRIVATE_BUCKET,
         )
 
 
