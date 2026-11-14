@@ -28,6 +28,7 @@ const labels: Record<string, string> = {
   validado: "Validado",
   rechazado: "Rechazado",
   enviado: "Enviado",
+  simulado: "Simulado",
   exento: "Exento",
 };
 

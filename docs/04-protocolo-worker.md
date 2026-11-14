@@ -47,8 +47,13 @@ El worker también envía los avisos del proceso de inscripción. El backend
 escribe cada aviso en `notificacion_outbox` y el worker lo entrega:
 
 - `POST /worker/notificaciones?limit=50` → procesa la cola y devuelve
-  `{ "procesados": n, "enviados": n, "fallidos": n }`.
-- Estados de la cola: `pendiente` → `enviado` | `error` | `cancelado`.
+  `{ "procesados": n, "enviados": n, "simulados": n, "fallidos": n }`.
+- Estados de la cola: `pendiente` → `enviado` | `simulado` | `error` |
+  `cancelado`. `simulado` significa que sólo se imprimió en consola
+  (`EMAIL_DEV_MODE`, desarrollo local); `error` guarda el motivo en
+  `ultimo_error`.
+- El envío es real: sin SMTP configurado la notificación queda en `error`, no
+  en `enviado`.
 - `dedupe_key` evita avisos duplicados (por ejemplo, un mismo check-in
   notificado dos veces).
 - Un envío fallido guarda `ultimo_error` y puede reintentarse desde

@@ -32,6 +32,7 @@ jobs:
       WORKER_API_KEY: ci-worker-key
       CORS_ORIGINS: '["http://localhost:3000"]'
       TOTP_ENCRYPTION_KEY: "S6vIcSyRe5MOUpiQzCWw5e9-mU0ZAip7MMDFUwZ7AMM="
+      EMAIL_DEV_MODE: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

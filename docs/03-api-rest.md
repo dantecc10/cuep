@@ -140,7 +140,7 @@ transferencias).
 - `GET /notificaciones/outbox?estado=&page=` (admin) → cola de envío.
 - `POST /notificaciones/enviar` body: `{ student_id, clave, contexto?, dedupe_key? }` (admin/coordinador) → encola un aviso.
 - `POST /notificaciones/outbox/{outbox_id}/reintentar` (admin) → reintenta un envío fallido.
-- `POST /notificaciones/procesar?limit=` (admin) → procesa la cola en el proceso de la API.
+- `POST /notificaciones/procesar?limit=` (admin) → procesa la cola en el proceso de la API. Responde `{ "procesados": n, "enviados": n, "simulados": n, "fallidos": n }`.
 - `POST /worker/notificaciones?limit=` (`X-Worker-Key`) → misma operación desde el worker.
 
 ### Errores frecuentes del módulo
@@ -149,4 +149,7 @@ transferencias).
 - 409 `Email ya registrado.` / `Teléfono ya registrado.` → duplicados en el padrón.
 - 409 `La inscripción está cancelada o de baja` → el alumno ya no admite check-in.
 - 404 `La sede no tiene código de matrícula configurado.` → sede sin `codigo` de un carácter.
-- 503 `Almacenamiento privado no configurado` → falta `R2_PRIVATE_BUCKET`.
+- 503 `Falta R2_PRIVATE_BUCKET…` / `Almacenamiento privado no configurado` → los comprobantes
+  exigen un bucket privado propio; nunca se usa el bucket público.
+- 503 `No se pudo enviar el código por correo…` → SMTP sin configurar o con error; el
+  inicio de sesión con 2FA responde 503 en vez de dejar esperando un código.

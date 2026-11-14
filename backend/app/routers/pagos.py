@@ -272,7 +272,13 @@ async def get_comprobante_url(
         raise HTTPException(status_code=404, detail="El pago no tiene comprobante")
     url = presigned_payment_proof_url(pago.comprobante_key)
     if url is None:
-        raise HTTPException(status_code=503, detail="Almacenamiento privado no configurado")
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Almacenamiento privado no configurado en el servidor "
+                "(falta R2_PRIVATE_BUCKET)."
+            ),
+        )
     return {"url": url, "expires_in": 900}
 
 

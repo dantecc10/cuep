@@ -114,14 +114,24 @@ El procedimiento completo está en [10 — Cierre y Apertura Anual](10-cierre-an
 
 ### Variables de entorno (backend/.env)
 
+La plantilla completa está en `backend/.env.example`; cópiala y ajusta cada
+valor. Todas las variables del backend están ahí, incluidas las nuevas del
+módulo de inscripción.
+
 ```text
-DATABASE_URL=postgresql+asyncpg://cuep:CAMBIAR@localhost:5432/cuep
 ENVIRONMENT=production
+DATABASE_URL=postgresql+asyncpg://cuep:CAMBIAR@localhost:5432/cuep
 PUBLIC_APP_URL=https://app.example.com
 JWT_SECRET=<hex 64>
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
+REFRESH_COOKIE_NAME=cuep_refresh
+REFRESH_COOKIE_PATH=/api/v1/auth
+COOKIE_SECURE=True
+COOKIE_SAMESITE=lax
+COOKIE_DOMAIN=
+APP_TIMEZONE=America/Mexico_City
 WORKER_API_KEY=<hex 32>
 CORS_ORIGINS=["https://app.example.com"]
 R2_ACCOUNT_ID=...
@@ -131,25 +141,122 @@ R2_BUCKET=cuep-files
 R2_PRIVATE_BUCKET=cuep-private
 R2_PUBLIC_BASE=https://files.example.com
 PAYMENT_PROOF_MAX_BYTES=10485760
-SMTP_HOST=
+SMTP_HOST=smtp.tu-dominio.mx
 SMTP_PORT=587
-SMTP_USER=
-SMTP_PASSWORD=
-SMTP_FROM_EMAIL=
+SMTP_USER=...
+SMTP_PASSWORD=...
+SMTP_FROM_EMAIL=...
 SMTP_FROM_NAME=CUEP
+EMAIL_DEV_MODE=False
 SOLVER_TIMEOUT=300
 TOTP_ENCRYPTION_KEY=<fernet key>
 ```
-
-`PUBLIC_APP_URL` se usa para construir el enlace del pase y el QR.
-`R2_PRIVATE_BUCKET` guarda los comprobantes de transferencia; sin él la subida
-de comprobantes responde 503. `PAYMENT_PROOF_MAX_BYTES` limita el tamaño del
-comprobante (10 MB por defecto).
 
 Genera la clave Fernet con:
 
 ```bash
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+### Bucket privado de comprobantes (R2)
+
+Los comprobantes de transferencia **nunca** se guardan en el bucket público.
+Hace falta un bucket propio, sin URL pública:
+
+1. En Cloudflare R2, crea un bucket (por ejemplo `cuep-private`) **sin**dominio
+   público ni `r2.dev` habilitado.
+2. Crea un token de API con permiso de **lectura y escritura** sólo sobre ese
+   bucket y anota `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID` y `R2_SECRET_ACCESS_KEY`.
+3. Define `R2_PRIVATE_BUCKET=cuep-private` en `backend/.env` y reinicia
+   `cuep-api`.
+
+Si `R2_PRIVATE_BUCKET` está vacío, la subida de comprobantes responde **503**
+con el mensaje "Falta R2_PRIVATE_BUCKET…": es intencional, para que un
+comprobante nunca acabe en el bucket público. `PAYMENT_PROOF_MAX_BYTES` limita
+el tamaño del archivo (10 MB por defecto); nginx debe permitir al menos ese
+tamaño (`client_max_body_size 10M`).
+
+### Correo (SMTP)
+
+Las notificaciones del proceso de inscripción se envían por SMTP:
+
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` y `SMTP_FROM_EMAIL`
+  son obligatorios para enviar. El servidor usa `starttls()` y, si defines
+  `SMTP_USER`, autentica con usuario y contraseña.
+- **Sin SMTP el envío falla**: la notificación queda en estado `error` en la
+  salida y el administrador lo ve en `/dashboard/notificaciones`. Nunca se
+  marca como enviada si no se entregó.
+- `EMAIL_DEV_MODE=true` es sólo para desarrollo local: imprime el correo en la
+  consola y marca la notificación como `simulado` (visible en la salida).
+  **No lo actives en el servidor.**
+- Los códigos de verificación (2FA) también usan este canal: si el envío
+  falla, el inicio de sesión responde 503 en lugar de dejar al usuario esperando
+  un código que nunca llega.
+
+### Drenar la salida de notificaciones
+
+El backend guarda cada aviso en la salida (`notificacion_outbox`) y el worker
+la envía. Para drenarla a mano (admin):
+
+```bash
+curl -X POST https://api.example.com/api/v1/notificaciones/procesar \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+```
+
+O desde el propio servidor, con la clave del worker:
+
+```bash
+curl -X POST -H "X-Worker-Key: $WORKER_API_KEY" \
+  https://api.example.com/api/v1/worker/notificaciones
+```
+
+Para no depender de que alguien lo haga a mano, instala un temporizador de
+sistema:
+
+```ini
+# /etc/systemd/system/cuep-notificaciones.service
+[Unit]
+Description=Drena la salida de notificaciones del CUEP
+After=network.target cuep-api.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/cuep/backend/.env
+ExecStart=/bin/bash -c 'curl -sS -X POST -H "X-Worker-Key: ${WORKER_API_KEY}" http://127.0.0.1:2013/api/v1/worker/notificaciones'
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```ini
+# /etc/systemd/system/cuep-notificaciones.timer
+[Unit]
+Description=Envía las notificaciones pendientes del CUEP cada 5 minutos
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now cuep-notificaciones.timer
+systemctl list-timers | grep notificaciones
+```
+
+### Usuarios con rol de inscripción
+
+El rol `inscripcion` opera su sede: consulta el padrón, confirma asistencia y
+registra cobros en efectivo (no exporta ni valida transferencias).
+
+```bash
+cd /opt/cuep/backend
+source .venv/bin/activate
+python scripts/manage_users.py set-role --email persona@cuep.mx --role inscripcion
+python scripts/manage_users.py set-sede --email persona@cuep.mx --sede-id 3
 ```
 
 ### Servicio systemd
@@ -287,7 +394,11 @@ sudo certbot --nginx -d app.example.com -d api.example.com
 - Backend: `uvicorn app.main:app --reload`.
 - Frontend: `npm run dev` (proxy a API).
 - Worker apuntando a `http://localhost:8000/api/v1`.
-- R2 puede sustituirse por almacenamiento local en desarrollo (`STORAGE_BACKEND=local`, carpeta `./uploads`).
+- Sin R2 configurado, la subida de comprobantes responde 503 (no hay
+  almacenamiento local alternativo: los comprobantes siempre van a R2).
+- Sin SMTP configurado, pon `EMAIL_DEV_MODE=true` en `backend/.env`: los
+  correos se imprimen en la consola y quedan marcados como `simulado` en la
+  salida de notificaciones.
 - PostgreSQL local o instancia en puerto alternativo.
 
 ## 8. Backups
@@ -315,6 +426,28 @@ cd /opt/cuep/worker && source .venv/bin/activate && pip install -r requirements.
 sudo systemctl restart cuep-worker
 ```
 
+### Migraciones nuevas del módulo de inscripción
+
+Después de actualizar el código, aplica las migraciones antes de reiniciar los
+servicios:
+
+```bash
+cd /opt/cuep/backend && source .venv/bin/activate
+alembic upgrade head
+sudo systemctl restart cuep-api cuep-web
+```
+
+Migraciones del módulo: `b1c2d3e4f5a6` (núcleo de inscripción),
+`c2d3e4f5a6b7` (cargos y pagos), `d3e4f5a6b7c8` (notificaciones),
+`e4f5a6b7c8d9` (plantillas) y `f5a6b7c8d9e0` (estado `simulado` en la salida de
+notificaciones).
+
+### Si agregas variables nuevas al `.env`
+
+`backend/.env` **no** se versiona: después de un `git pull` las variables nuevas
+no aparecen solas. Compara `backend/.env.example` con tu `.env` y añade lo que
+falte (por ejemplo `PUBLIC_APP_URL`, `R2_PRIVATE_BUCKET`, `EMAIL_DEV_MODE`).
+
 ## 10. CI/CD
 
 El repositorio incluye `.github/workflows/ci.yml` con:
@@ -326,6 +459,20 @@ El repositorio incluye `.github/workflows/ci.yml` con:
 
 - **Error de conexión a PostgreSQL**: verificar `DATABASE_URL`, usuario y contraseña.
 - **Error de migración por columnas NOT NULL**: ejecutar `alembic upgrade head` después de actualizar código.
-- **2FA no envía correo**: verificar SMTP o revisar logs; en desarrollo el código se imprime en consola.
+- **2FA no envía correo**: el login responde 503 si el envío falla. Revisar
+  `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`/`SMTP_PASSWORD` y `SMTP_FROM_EMAIL`; en
+  el log del backend aparece el error del servidor SMTP. Con
+  `EMAIL_DEV_MODE=true` (sólo local) el código se imprime en consola.
+- **Las notificaciones quedan en `error`**: mismo diagnóstico SMTP. En
+  `/dashboard/notificaciones` la columna "Error" explica el motivo.
+- **Las notificaciones quedan en `simulado`**: `EMAIL_DEV_MODE` está activo en
+  el servidor; hay que ponerlo en `false` y configurar SMTP.
+- **Subida de comprobantes responde 503**: falta `R2_PRIVATE_BUCKET` (o las
+  credenciales de R2). Recordar que el bucket privado es obligatorio y nunca es
+  el público.
+- **El QR o el pase apuntan a un dominio equivocado**: ajustar `PUBLIC_APP_URL`
+  y reiniciar `cuep-api`.
 - **Worker no toma tareas**: verificar `WORKER_API_KEY` y `API_BASE_URL`.
+- **La salida de notificaciones no se drena**: activar el temporizador
+  `cuep-notificaciones.timer` o llamar a `POST /notificaciones/procesar`.
 - **Frontend no conecta a API**: si usa el mismo dominio, verificar `NEXT_PUBLIC_API_URL=/api/v1` y el proxy de nginx; si usa otro dominio, revisar CORS.

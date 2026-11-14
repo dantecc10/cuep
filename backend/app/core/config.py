@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM_EMAIL: str = ""
     SMTP_FROM_NAME: str = "CUEP"
+    EMAIL_DEV_MODE: bool = False
     SOLVER_TIMEOUT: int = 300
     TOTP_ENCRYPTION_KEY: str = ""
 

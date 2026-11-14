@@ -238,7 +238,16 @@ Reglas de negocio:
 ### notificacion_plantillas / notificacion_outbox
 | notificacion_plantillas | notificacion_outbox |
 |---|---|
-| clave (UNIQUE), nombre, asunto, cuerpo_texto, cuerpo_html, variables JSONB, activo | plantilla_clave, destinatario_email, asunto, cuerpo, contexto JSONB, dedupe_key (UNIQUE parcial), estado (`pendiente`,`enviado`,`error`,`cancelado`), intentos, programado_para, enviado_at, ultimo_error |
+| clave (UNIQUE), nombre, asunto, cuerpo_texto, cuerpo_html, variables JSONB, activo | plantilla_clave, destinatario_email, asunto, cuerpo, contexto JSONB, dedupe_key (UNIQUE parcial), estado (`pendiente`,`enviado`,`simulado`,`error`,`cancelado`), intentos, programado_para, enviado_at, ultimo_error |
+
+Estados de la salida:
+- `pendiente`: en cola, esperando envío.
+- `enviado`: entregado por SMTP.
+- `simulado`: sólo se imprimió en la consola (`EMAIL_DEV_MODE`, desarrollo local);
+  **no llegó al destinatario**.
+- `error`: el envío falló (SMTP sin configurar o error del servidor); guarda el
+  motivo en `ultimo_error` y se puede reintentar.
+- `cancelado`: enviado manual cancelado.
 
 Plantillas iniciales sembradas por la migración `e4f5a6b7c8d9`:
 `registro_confirmado`, `pase_inscripcion`, `recordatorio_inscripcion_presencial`,

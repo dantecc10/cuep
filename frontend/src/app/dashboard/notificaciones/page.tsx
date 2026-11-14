@@ -121,8 +121,9 @@ export default function NotificacionesPage() {
     setBusy(true);
     try {
       const response = await api.post("/notificaciones/procesar", undefined, { headers });
+      const simulados = response.data.simulados ?? 0;
       toast.success(
-        `Procesadas: ${response.data.procesados} · enviadas: ${response.data.enviados} · fallidas: ${response.data.fallidos}`,
+        `Procesadas: ${response.data.procesados} · enviadas: ${response.data.enviados} · fallidas: ${response.data.fallidos}${simulados ? ` · simuladas: ${simulados}` : ""}`,
       );
       await refetchOutbox();
     } catch {
@@ -290,6 +291,7 @@ export default function NotificacionesPage() {
                 <option value="">Estado: todos</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="enviado">Enviado</option>
+                <option value="simulado">Simulado</option>
                 <option value="error">Error</option>
               </select>
               <span className="font-mono text-[0.62rem] uppercase tracking-[0.08em] text-ink/45">

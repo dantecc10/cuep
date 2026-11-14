@@ -25,7 +25,7 @@ from app.schemas.imports import (
     ImportReport,
     ImportRowIssue,
 )
-from app.services.email import send_email_sync
+from app.services.email import email_delivered, send_email_sync
 
 logger = logging.getLogger(__name__)
 
@@ -600,7 +600,7 @@ async def _import_usuarios(
 
         async def send_credential(credential: ImportCredential, nombre: str) -> None:
             async with semaphore:
-                credential.email_enviado = await run_in_threadpool(
+                email_status = await run_in_threadpool(
                     send_email_sync,
                     credential.email,
                     "Acceso a CUEP",
@@ -612,6 +612,7 @@ async def _import_usuarios(
                         "Cambia tu contraseña después de iniciar sesión.\n"
                     ),
                 )
+                credential.email_enviado = email_delivered(email_status)
             if credential.email_enviado:
                 report.correos_enviados += 1
             else:

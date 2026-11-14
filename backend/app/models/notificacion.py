@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 
-ESTADOS_OUTBOX = ("pendiente", "enviado", "error", "cancelado")
+ESTADOS_OUTBOX = ("pendiente", "enviado", "simulado", "error", "cancelado")
 
 
 class NotificacionPlantilla(Base):
@@ -33,7 +33,7 @@ class NotificacionOutbox(Base):
     __tablename__ = "notificacion_outbox"
     __table_args__ = (
         CheckConstraint(
-            "estado IN ('pendiente','enviado','error','cancelado')",
+            "estado IN ('pendiente','enviado','simulado','error','cancelado')",
             name="ck_notificacion_outbox_estado",
         ),
         CheckConstraint("intentos >= 0", name="ck_notificacion_outbox_intentos"),

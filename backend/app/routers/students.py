@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -17,9 +18,11 @@ from app.schemas.enrollment import (
     EnrollmentRead,
     EnrollmentStatusUpdate,
 )
-from app.services.email import send_email_sync
+from app.services.email import email_delivered, send_email_sync
 from app.services.normalization import normalize_phone_mx
 from fastapi.concurrency import run_in_threadpool
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["students"])
 
@@ -71,12 +74,17 @@ async def _promote_waitlist(db: AsyncSession, grupo_id: int):
     if student:
         user = await db.get(User, student.user_id)
         if user:
-            await run_in_threadpool(
+            email_status = await run_in_threadpool(
                 send_email_sync,
                 user.email,
                 "Promoción de lista de espera - CUEP",
                 f"Has sido promovido de la lista de espera al grupo {grupo.nombre}.",
             )
+            if not email_delivered(email_status):
+                logger.warning(
+                    "No se pudo avisar a %s de su promoción de la lista de espera",
+                    user.email,
+                )
 
 
 @router.get("/students/me", response_model=StudentRead)
@@ -192,12 +200,18 @@ async def create_enrollment(payload: EnrollmentCreate, user: User = Depends(get_
     await db.refresh(enrollment)
     student_user = await db.get(User, student.user_id) if student.user_id else None
     if student_user is not None:
-        await run_in_threadpool(
+        email_status = await run_in_threadpool(
             send_email_sync,
             student_user.email,
             "Inscripción CUEP",
             f"Tu inscripción al grupo {grupo.nombre} está {enrollment.estado}.",
         )
+        if not email_delivered(email_status):
+            logger.warning(
+                "No se pudo avisar a %s de su inscripción al grupo %s",
+                student_user.email,
+                grupo.nombre,
+            )
     return enrollment
 
 
@@ -324,7 +338,12 @@ async def update_enrollment(enrollment_id: int, payload: EnrollmentStatusUpdate,
     if student:
         u = await db.get(User, student.user_id)
         if u:
-            await run_in_threadpool(send_email_sync, u.email, "Estado de inscripción CUEP", f"Tu inscripción ahora está {enrollment.estado}.")
+            email_status = await run_in_threadpool(send_email_sync, u.email, "Estado de inscripción CUEP", f"Tu inscripción ahora está {enrollment.estado}.")
+            if not email_delivered(email_status):
+                logger.warning(
+                    "No se pudo avisar a %s del cambio de estado de su inscripción",
+                    u.email,
+                )
     return enrollment
 
 

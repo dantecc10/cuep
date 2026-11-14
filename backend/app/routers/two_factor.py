@@ -29,7 +29,7 @@ from app.models.two_factor import (
     TwoFactorAuditLog,
     TwoFactorChallenge,
 )
-from app.services.email import send_email_sync
+from app.services.email import EMAIL_FAILED, send_email_sync
 from fastapi.concurrency import run_in_threadpool
 from app.schemas.two_factor import (
     ChallengeResponse,
@@ -105,7 +105,12 @@ async def create_challenge(request: Request, user: User = Depends(get_current_us
     db.add(ch)
     await db.flush()
     # send email always
-    await run_in_threadpool(send_email_sync, user.email, "Código de verificación CUEP", f"Tu código de verificación es: {code}\nExpira en 10 minutos.")
+    email_status = await run_in_threadpool(send_email_sync, user.email, "Código de verificación CUEP", f"Tu código de verificación es: {code}\nExpira en 10 minutos.")
+    if email_status == EMAIL_FAILED:
+        raise HTTPException(
+            status_code=503,
+            detail="No se pudo enviar el código por correo. Revisa la configuración SMTP del servidor.",
+        )
     methods = ["email"]
     if user.totp_enabled:
         methods.append("totp")
@@ -125,7 +130,12 @@ async def resend(request: Request, payload: ResendRequest, db: AsyncSession = De
     ch.expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
     ch.attempts = 0
     await db.flush()
-    await run_in_threadpool(send_email_sync, user.email, "Código de verificación CUEP", f"Tu código de verificación es: {code}\nExpira en 10 minutos.")
+    email_status = await run_in_threadpool(send_email_sync, user.email, "Código de verificación CUEP", f"Tu código de verificación es: {code}\nExpira en 10 minutos.")
+    if email_status == EMAIL_FAILED:
+        raise HTTPException(
+            status_code=503,
+            detail="No se pudo enviar el código por correo. Revisa la configuración SMTP del servidor.",
+        )
     methods = ["email"]
     if user.totp_enabled:
         methods.append("totp")

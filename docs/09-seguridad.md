@@ -74,6 +74,24 @@
 - Archivos privados: URLs firmadas con TTL ≤ 15 min.
 - Validar tipo MIME y tamaño en backend antes de generar presigned URL.
 - CORS del bucket restringido al dominio frontend.
+- **Los comprobantes de pago exigen un bucket privado propio**
+  (`R2_PRIVATE_BUCKET`). Si la variable falta, la subida responde 503: el
+  backend nunca cae al bucket público, para que un comprobante no quede
+  expuesto por una URL pública.
+
+## Notificaciones y correo
+
+- El envío es real en todos los entornos: si el servidor SMTP no está
+  configurado, la notificación queda en estado `error` (con el motivo en
+  `ultimo_error`), nunca en `enviado`.
+- `EMAIL_DEV_MODE` es una excepción explícita para desarrollo local: el
+  mensaje se imprime en la consola y queda en estado `simulado`, visible en
+  `/dashboard/notificaciones`. No debe activarse en el servidor.
+- La salida de notificaciones deduplica por `dedupe_key` para no repetir
+  avisos al mismo alumno.
+- Los códigos de verificación (2FA) viajan por el mismo canal: si el envío
+  falla, el inicio de sesión responde 503 en lugar de prometer un código que
+  no llegará.
 
 ## Hardening del servidor
 

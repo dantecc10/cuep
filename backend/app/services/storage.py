@@ -36,13 +36,16 @@ def log_r2_config() -> None:
         )
 
 
-def r2_configured() -> bool:
+def r2_credentials_configured() -> bool:
     return bool(
         settings.R2_ACCOUNT_ID
         and settings.R2_ACCESS_KEY_ID
         and settings.R2_SECRET_ACCESS_KEY
-        and settings.R2_BUCKET
     )
+
+
+def r2_configured() -> bool:
+    return bool(r2_credentials_configured() and settings.R2_BUCKET)
 
 
 def _public_url(key: str) -> str:
@@ -121,7 +124,23 @@ ALLOWED_PROOF_TYPES = {
 
 
 def private_bucket() -> str:
-    return settings.R2_PRIVATE_BUCKET or settings.R2_BUCKET
+    """Bucket privado de comprobantes. Nunca cae al bucket público."""
+    if not settings.R2_PRIVATE_BUCKET:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Falta R2_PRIVATE_BUCKET: los comprobantes de pago requieren "
+                "un bucket privado propio (no se usa el bucket público)."
+            ),
+        )
+    return settings.R2_PRIVATE_BUCKET
+
+
+def private_bucket_configured() -> bool:
+    return bool(
+        r2_credentials_configured()
+        and settings.R2_PRIVATE_BUCKET
+    )
 
 
 def _s3_client():
@@ -140,10 +159,13 @@ async def upload_payment_proof(
     file: UploadFile, student_id: int, pago_id: int
 ) -> dict[str, str | int]:
     bucket = private_bucket()
-    if not r2_configured() or not bucket:
+    if not r2_credentials_configured():
         raise HTTPException(
             status_code=503,
-            detail="El almacenamiento privado no está configurado.",
+            detail=(
+                "El almacenamiento privado no está configurado: faltan las "
+                "credenciales de R2 en el servidor."
+            ),
         )
     content_type = file.content_type or ""
     extension = ALLOWED_PROOF_TYPES.get(content_type)
@@ -188,12 +210,11 @@ async def upload_payment_proof(
 
 
 def presigned_payment_proof_url(key: str, expires_in: int = 900) -> str | None:
-    bucket = private_bucket()
-    if not r2_configured() or not bucket:
+    if not private_bucket_configured():
         return None
     client = _s3_client()
     return client.generate_presigned_url(
         "get_object",
-        Params={"Bucket": bucket, "Key": key},
+        Params={"Bucket": settings.R2_PRIVATE_BUCKET, "Key": key},
         ExpiresIn=expires_in,
     )

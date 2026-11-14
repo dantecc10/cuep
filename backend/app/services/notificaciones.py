@@ -10,7 +10,7 @@ from app.models.inscripcion import ConfiguracionInscripcion
 from app.models.notificacion import NotificacionOutbox, NotificacionPlantilla
 from app.models.sede import Sede
 from app.models.student import Student
-from app.services.email import send_email_sync
+from app.services.email import EMAIL_SENT, EMAIL_SIMULATED, send_email_sync
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,17 @@ async def enqueue_notificacion(
         if outbox is not None:
             return outbox
 
-    values = {key: "" if value is None else str(value) for key, value in (context or {}).items()}
+    values = {
+        key: "" if value is None else str(value)
+        for key, value in (context if context is not None else student_context(student)).items()
+    }
     subject = Template(template.asunto).safe_substitute(values)
     body = Template(template.cuerpo_texto).safe_substitute(values)
+    html = (
+        Template(template.cuerpo_html).safe_substitute(values)
+        if template.cuerpo_html
+        else None
+    )
     outbox = NotificacionOutbox(
         plantilla_id=template.id,
         plantilla_clave=template.clave,
@@ -66,7 +74,7 @@ async def enqueue_notificacion(
         destinatario_email=email,
         asunto=subject,
         cuerpo_texto=body,
-        cuerpo_html=template.cuerpo_html,
+        cuerpo_html=html,
         contexto=values,
         dedupe_key=dedupe_key,
         estado="pendiente",
@@ -92,23 +100,40 @@ async def send_pending_notificaciones(
     )
     items = result.scalars().all()
     sent = 0
+    simulated = 0
     failed = 0
     for outbox in items:
         outbox.intentos += 1
-        ok = await run_in_threadpool(
+        status = await run_in_threadpool(
             send_email_sync,
             outbox.destinatario_email,
             outbox.asunto,
             outbox.cuerpo_texto,
+            outbox.cuerpo_html,
         )
-        if ok:
+        if status == EMAIL_SENT:
             outbox.estado = "enviado"
             outbox.enviado_at = datetime.now(timezone.utc)
             outbox.ultimo_error = None
             sent += 1
+        elif status == EMAIL_SIMULATED:
+            outbox.estado = "simulado"
+            outbox.enviado_at = None
+            outbox.ultimo_error = (
+                "Enviado en modo simulado (EMAIL_DEV_MODE); el correo no llegó al destinatario."
+            )
+            simulated += 1
         else:
             outbox.estado = "error"
-            outbox.ultimo_error = "No se pudo enviar el correo"
+            outbox.enviado_at = None
+            outbox.ultimo_error = (
+                "No se pudo enviar el correo: revisa la configuración SMTP del servidor."
+            )
             failed += 1
     await db.flush()
-    return {"procesados": len(items), "enviados": sent, "fallidos": failed}
+    return {
+        "procesados": len(items),
+        "enviados": sent,
+        "simulados": simulated,
+        "fallidos": failed,
+    }

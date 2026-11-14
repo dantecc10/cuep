@@ -44,9 +44,14 @@ async def login(payload: LoginRequest, response: Response, db: AsyncSession = De
         )
         db.add(ch)
         await db.flush()
-        from app.services.email import send_email_sync
+        from app.services.email import EMAIL_FAILED, send_email_sync
         from fastapi.concurrency import run_in_threadpool
-        await run_in_threadpool(send_email_sync, user.email, "Código de verificación CUEP", f"Tu código de verificación es: {code}\nExpira en 10 minutos.")
+        email_status = await run_in_threadpool(send_email_sync, user.email, "Código de verificación CUEP", f"Tu código de verificación es: {code}\nExpira en 10 minutos.")
+        if email_status == EMAIL_FAILED:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="No se pudo enviar el código por correo. Revisa la configuración SMTP del servidor.",
+            )
         return {"requires_2fa": True, "challenge_id": challenge_id, "methods": ["email", "totp"]}
 
     access = create_access_token(str(user.id))
