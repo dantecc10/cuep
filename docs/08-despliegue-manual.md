@@ -439,8 +439,9 @@ sudo systemctl restart cuep-api cuep-web
 
 Migraciones del módulo: `b1c2d3e4f5a6` (núcleo de inscripción),
 `c2d3e4f5a6b7` (cargos y pagos), `d3e4f5a6b7c8` (notificaciones),
-`e4f5a6b7c8d9` (plantillas) y `f5a6b7c8d9e0` (estado `simulado` en la salida de
-notificaciones).
+`e4f5a6b7c8d9` (plantillas), `f5a6b7c8d9e0` (estado `simulado` en la salida de
+notificaciones) y `a6b7c8d9e0f1` (eventos y plantillas de asignación de
+grupos).
 
 ### Si agregas variables nuevas al `.env`
 

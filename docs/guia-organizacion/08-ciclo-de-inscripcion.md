@@ -31,13 +31,18 @@ inscripción presencial.
 7. **Cierre del ciclo.** Cuando termina la convocatoria se cierra el registro,
    se exporta el padrón del año y se abre el año siguiente. **No se borra nada:**
    el ciclo anterior queda como archivo.
+8. **Asignación de grupos.** Cuando ya se sabe qué asesorías se van a abrir, el
+   personal de cada sede asigna a cada persona inscrita el grupo donde le
+   corresponde recibir la asesoría. Si un grupo está lleno, la persona queda en
+   lista de espera y se le avisa cuando se libera un lugar. La asignación la
+   hace el personal: nadie se elige grupo a sí mismo.
 
 ## Quién hace qué
 
 | Persona | Qué hace en el ciclo |
 |---|---|
 | Aspirante | Crea su cuenta, llena el formulario, descarga su pase, se presenta en la sede y paga el simulacro si lo quiere. |
-| Personal de sede | Confirma la asistencia en la mesa de inscripción y registra los cobros en efectivo de su sede. |
+| Personal de sede | Confirma la asistencia en la mesa de inscripción, registra los cobros en efectivo y asigna los grupos de asesoría de su sede. |
 | Coordinación y administración | Abren y cierran el ciclo, ven el padrón de aspirantes, exportan el listado, validan transferencias y ajustan la configuración (simulacro, banco, formas de pago). |
 
 ## Qué datos se registran y por qué
@@ -61,6 +66,8 @@ que valida pagos.
 
 - El simulacro no es obligatorio y el pago nunca condiciona la matrícula.
 - El sistema no califica, no rechaza y no evalúa a nadie.
+- Los grupos no se eligen solos: los asigna el personal de cada sede, y la
+  asignación queda registrada.
 - Cerrar el año no borra la información: el padrón anterior queda disponible
   para consulta y para los reportes.
 - La información real del formulario no se usa fuera de los servidores del

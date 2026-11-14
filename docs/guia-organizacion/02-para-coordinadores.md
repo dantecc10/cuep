@@ -67,7 +67,11 @@ inscripción. Es un trabajo distinto, con su propio ritmo:
 4. **Pagos.** Las transferencias se revisan una por una: se abre el comprobante
    y se valida o se rechaza con un motivo. Quien cobra en efectivo queda
    validado en el momento.
-5. **Cierre.** Antes de cerrar el año se revisa que no queden pagos por
+5. **Grupos.** Cuando ya se saben qué asesorías se abrirán, el personal de cada
+   sede asigna a cada persona inscrita su grupo. Si un grupo está lleno, la
+   persona queda en lista de espera y se le avisa cuando se libera un lugar.
+   Nadie se asigna grupo a sí mismo: es una decisión del equipo de la sede.
+6. **Cierre.** Antes de cerrar el año se revisa que no queden pagos por
    confirmar ni avisos sin enviar, se exporta el padrón y se cambia el año
    activo. **Cerrar no borra nada**: el padrón del año anterior queda
    consultable.
@@ -96,7 +100,7 @@ posible puede no ser pedagógica, accesible o políticamente conveniente.
 
 La documentación técnica define este flujo y ya existe una base de backend,
 frontend y un trabajador local para el cálculo. El módulo de inscripción anual
-cuenta con registro, padrón, mesa de inscripción, pagos, avisos y cierre de
-ciclo; la interfaz y las funciones completas siguen desarrollándose; por eso
+cuenta con registro, padrón, mesa de inscripción, pagos, asignación de grupos,
+avisos y cierre de ciclo; la interfaz y las funciones completas siguen desarrollándose; por eso
 la disponibilidad de cada pantalla debe confirmarse con el equipo responsable
 antes de planear su uso cotidiano.
