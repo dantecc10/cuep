@@ -10,6 +10,12 @@ participar en su construcción y reconocer su utilidad para el trabajo colectivo
 académicas**, tomando en cuenta la disponibilidad, las materias que puede
 impartir cada tutor y las necesidades de los grupos de estudiantes.
 
+Además, desde este año el CUEP acompaña el **proceso de inscripción anual**:
+el registro de aspirantes, la matrícula, el pase con código QR, la mesa de
+inscripción presencial, el simulacro y los pagos. Son dos frentes del mismo
+trabajo: organizar las asesorías y organizar el proceso por el que las personas
+entran al programa.
+
 El proyecto está en desarrollo. Esta guía describe el propósito, el diseño y los
 beneficios esperados; no significa que todas las funciones estén disponibles
 todavía. La documentación técnica continúa en la carpeta [`docs/`](../).
@@ -21,6 +27,7 @@ todavía. La documentación técnica continúa en la carpeta [`docs/`](../).
 | Tutor o tutora | [Cómo participar como tutor](03-para-tutores.md) |
 | Coordinador o coordinadora | [Cómo se organizaría el trabajo de coordinación](02-para-coordinadores.md) |
 | Estudiante | [Qué cambia para las y los estudiantes](04-para-estudiantes.md) |
+| Aspirante a una asesoría | [El ciclo de inscripción anual](08-ciclo-de-inscripcion.md) |
 | Militante del CUEP | [Por qué este proyecto importa para la organización](05-para-militantes.md) |
 | Parte de la comunidad y quieres una explicación general | [Qué es CUEP y qué problema atiende](01-que-es-cuep.md) |
 
@@ -33,10 +40,15 @@ todavía. La documentación técnica continúa en la carpeta [`docs/`](../).
 5. [Para militantes: utilidad política y organizativa](05-para-militantes.md)
 6. [Beneficios, cuidados y límites](06-beneficios-y-cuidados.md)
 7. [Preguntas frecuentes](07-preguntas-frecuentes.md)
+8. [El ciclo de inscripción anual](08-ciclo-de-inscripcion.md)
 
 ## Una idea central
 
 CUEP no sustituye la organización ni las decisiones de las personas. Busca
 quitar trabajo repetitivo, hacer visibles las necesidades y ayudar a construir
-horarios más justos y posibles. Las decisiones pedagógicas, políticas y de
-cuidado siguen siendo responsabilidad de la organización.
+horarios más justos y posibles. Lo mismo aplica al proceso de inscripción: la
+herramienta lleva el registro, pero las fechas, las sedes, los mensajes y las
+decisiones sobre quién participa siguen siendo acuerdos colectivos.
+
+Las decisiones pedagógicas, políticas y de cuidado siguen siendo
+responsabilidad de la organización.

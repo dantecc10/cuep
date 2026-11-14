@@ -6,7 +6,7 @@ Arquitectura híbrida desacoplada (*Heavy Compute Delegation*): VPS (datos + web
 
 ## Componentes
 
-- **Frontend Web**: SPA React + Vite + TypeScript. Consume API REST.
+- **Frontend Web**: Next.js 14 (App Router) + TypeScript + Tailwind/shadcn. Consume API REST.
 - **Backend API**: FastAPI (Python 3.11), async, Uvicorn. ORM SQLAlchemy 2.0 + Alembic.
 - **Base de Datos**: PostgreSQL 16.
 - **Worker Local**: Python 3.11, polling REST, Google OR-Tools CP-SAT. Ejecuta en PC del coordinador.
@@ -33,6 +33,25 @@ flowchart LR
 3. **Caché**: si hash existe con estado `COMPLETADO`, retorna resultado sin Worker.
 4. **Procesamiento**: Worker hace polling, toma tarea `PENDIENTE`, resuelve, publica resultado `COMPLETADO`/`ERROR`.
 5. **Consulta**: Frontend consulta estado y muestra propuesta + métricas.
+
+## Módulo de inscripción anual
+
+El registro anual corre dentro del mismo backend y comparte base de datos,
+autenticación y roles:
+
+- **Aspirante (web)**: `POST /auth/register` crea usuario + perfil, genera
+  folio/matrícula y deja el evento `registro` en la bitácora.
+- **Padrón**: `students` con `anio` como cohorte; los listados filtran por año,
+  sede y estatus, con búsqueda por matrícula, correo o teléfono.
+- **Mesa presencial**: check-in por matrícula o QR → evento `checkin`.
+- **Pagos**: cargos (`simulacro`) y pagos (`efectivo` en sede,
+  `transferencia` validada a mano); comprobantes en bucket privado de R2.
+- **Notificaciones**: outbox en base de datos, enviado por el Worker
+  (`POST /worker/notificaciones`) o desde la API con
+  `POST /notificaciones/procesar`.
+- **Cierre de ciclo**: `scripts/reset_academic_year.py` adelanta el año activo
+  y cierra el registro sin borrar el histórico
+  (ver `10-cierre-anual.md`).
 
 ## Comunicación VPS ↔ Worker
 

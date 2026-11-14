@@ -37,6 +37,13 @@ Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanS
 | /dashboard/mi-horario | Horario publicado del tutor | tutor |
 | /dashboard/2fa | Configuración 2FA | autenticado |
 | /mi-inscripcion | Inscripción y horario del alumno | alumno |
+| /mi-registro | Estado del proceso, matrícula, QR, pase, cargos y pagos | alumno |
+| /mi-pagos | Cargos, saldo, historial, comprobante y recibo | alumno |
+| /dashboard/aspirantes | Padrón anual con filtros, detalle y export CSV | admin/coord/subcoord/inscripción |
+| /dashboard/inscripcion-presencial | Check-in por matrícula o QR y cobro en efectivo | admin/coord/subcoord/inscripción |
+| /dashboard/pagos | Validación y rechazo de transferencias | admin/coord/subcoord |
+| /dashboard/configuracion-inscripcion | Año activo, registro, simulacro, banco, parcialidades | admin |
+| /dashboard/notificaciones | Plantillas, outbox y reintentos | admin |
 
 ## Identidad visual
 
@@ -59,6 +66,31 @@ Next.js 14 (App Router) + TypeScript. UI: Tailwind CSS + shadcn/ui. Estado: TanS
 - `SiteChrome`, `SiteHeader`, `SiteFooter`, `HeroSection`, `PaperSection`, `CallToAction`, `AppShell`.
 - Assets de identidad: `heart.png` (logo/favicon/emblema) y `penguin.png` (ilustración secundaria).
 - `MetricasPanel`: métricas del solver.
+
+## Módulo de inscripción anual
+
+- `/registro`: formulario público de 3 pasos (cuenta → datos personales → datos
+  académicos). Lee `/inscripciones/config` para mostrar el año, el estado del
+  registro (pantalla de "Registro cerrado" cuando aplica) y el simulacro
+  opt-in. Envía `POST /auth/register` con `solicita_simulacro` y al terminar
+  redirige a `/mi-registro?nueva=1`.
+- `/mi-registro`: estado del proceso, matrícula en monoespaciada, QR
+  (`react-qr-code`), botón de descarga del pase, cargos, saldo y últimos
+  eventos.
+- `/mi-pagos`: cargos vigentes, saldo, historial, formulario de transferencia,
+  subida de comprobante y descarga del recibo.
+- `/mi-inscripcion`: redirige a `/mi-registro` (se conserva por compatibilidad
+  con enlaces previos).
+- Vistas de staff: padrón (`/dashboard/aspirantes`), mesa de check-in
+  (`/dashboard/inscripcion-presencial`), validación de pagos
+  (`/dashboard/pagos`), configuración del ciclo
+  (`/dashboard/configuracion-inscripcion`) y notificaciones
+  (`/dashboard/notificaciones`).
+- `StatusBadge` reconoce los estatus del proceso: `registrado`, `en_inscripcion`,
+  `inscrito`, `activo`, `no_asistio`, `cancelado`, `baja`; y los estados de
+  pago `pendiente`, `parcial`, `pagado`, `validado`, `rechazado`, `exento`.
+- `AppShell` y el dashboard principal agregan enlaces según rol; el rol
+  `inscripcion` entra al padrón, a la mesa de check-in y a pagos de su sede.
 
 ## API client
 

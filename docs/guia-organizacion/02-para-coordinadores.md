@@ -49,6 +49,33 @@ Una vez acordado el horario, se comparte con tutores y estudiantes. Si cambia
 una disponibilidad o un grupo, puede generarse una nueva propuesta sin perder
 el historial de la anterior.
 
+## El trabajo del ciclo de inscripción
+
+Además de los horarios, la coordinación acompaña el proceso anual de
+inscripción. Es un trabajo distinto, con su propio ritmo:
+
+1. **Apertura.** Se define el año activo, si habrá simulacro, cuánto cuesta, si
+   se acepta transferencia, cuántas parcialidades se permiten y qué datos de
+   banco se muestran. Todo esto se ajusta desde la pantalla de configuración.
+2. **Acompañamiento.** Se revisa el padrón: cuántas personas se registraron,
+   cuántas llegaron a la mesa de inscripción, cómo se distribuyen por sede.
+   El padrón se puede exportar a una hoja de cálculo para revisarlo con
+   calma.
+3. **Mesa de inscripción.** El personal de cada sede confirma la asistencia de
+   quien llega, ya sea con la matrícula o con el código QR, y registra los
+   cobros en efectivo.
+4. **Pagos.** Las transferencias se revisan una por una: se abre el comprobante
+   y se valida o se rechaza con un motivo. Quien cobra en efectivo queda
+   validado en el momento.
+5. **Cierre.** Antes de cerrar el año se revisa que no queden pagos por
+   confirmar ni avisos sin enviar, se exporta el padrón y se cambia el año
+   activo. **Cerrar no borra nada**: el padrón del año anterior queda
+   consultable.
+
+Este trabajo sigue siendo humano: la herramienta lleva la cuenta y el
+registro, pero las decisiones sobre fechas, sedes, montos y mensajes son de la
+organización.
+
 ## Beneficios para la coordinación
 
 - Menos tiempo dedicado a tareas repetitivas.
@@ -68,6 +95,8 @@ posible puede no ser pedagógica, accesible o políticamente conveniente.
 ## Estado actual
 
 La documentación técnica define este flujo y ya existe una base de backend,
-frontend y un trabajador local para el cálculo. La interfaz y las funciones
-completas siguen desarrollándose; por eso la disponibilidad de cada pantalla
-debe confirmarse con el equipo responsable antes de planear su uso cotidiano.
+frontend y un trabajador local para el cálculo. El módulo de inscripción anual
+cuenta con registro, padrón, mesa de inscripción, pagos, avisos y cierre de
+ciclo; la interfaz y las funciones completas siguen desarrollándose; por eso
+la disponibilidad de cada pantalla debe confirmarse con el equipo responsable
+antes de planear su uso cotidiano.

@@ -15,6 +15,25 @@ El sistema no sustituye la relación entre estudiantes y tutores. Su función es
 ayudar a que esa relación tenga condiciones de tiempo y organización más
 predecibles.
 
+## Y además, un proceso de inscripción más ordenado
+
+Para entrar al programa hay un proceso anual. El sitio lo acompaña en cada
+paso:
+
+1. **Te registras** con tu correo y tus datos. Son tres pasos y se explica
+   para qué se pide cada dato.
+2. **Recibes tu matrícula**, un código corto que te identifica dentro del
+   proceso. La puedes consultar cuando quieras en "Mi registro".
+3. **Descargas tu pase** en PDF y muestras el código QR en la sede.
+4. **Te atienden en la mesa de inscripción**: el personal de la sede busca tu
+   matrícula o escanea tu QR y confirma tu asistencia.
+5. **Si quieres participar en el simulacro**, te anotas y lo pagas después:
+   en efectivo en la sede o por transferencia subiendo tu comprobante. El
+   simulacro es opcional y **el pago nunca te impide inscribirte**.
+
+El detalle completo está en
+[El ciclo de inscripción anual](08-ciclo-de-inscripcion.md).
+
 ## Beneficios esperados
 
 - Menos cancelaciones provocadas por traslapes.
@@ -50,3 +69,20 @@ propuesta; CUEP no debe ocultar estos problemas ni impedir que se discutan.
 La información de estudiantes debe solicitarse únicamente cuando sea necesaria
 para organizar o acompañar las asesorías. Los criterios de acceso, conservación
 y eliminación deben comunicarse de manera clara a la comunidad.
+
+En el proceso de inscripción se piden datos personales (nombre, correo,
+teléfono, dirección, contacto de emergencia y datos escolares). Cada dato
+tiene un propósito concreto, se pide sólo a quien lo necesita para atenderte y
+el acceso está limitado por rol y por sede: el personal de otra sede no ve tu
+información.
+
+Además:
+
+- tu correo y tu teléfono no se pueden registrar dos veces, así que la
+  matrícula no se duplica ni se reparte entre dos personas;
+- tu comprobante de pago se guarda en un espacio privado al que sólo llega
+  quien valida pagos, y se descarga con un enlace temporal;
+- cuando se cierra el año, **tu información no se borra**: queda archivada con
+  el año al que pertenece;
+- si el sitio tiene un error con tus datos, puedes pedir la corrección a tu
+  sede.

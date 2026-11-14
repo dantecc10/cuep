@@ -6,6 +6,22 @@ CUEP es una herramienta para planear de manera ordenada los horarios de las
 asesorías que el CUEP ofrece a estudiantes que se preparan para ingresar a la
 BUAP.
 
+## Los dos frentes del CUEP
+
+El programa tiene dos necesidades: organizar las asesorías y organizar el
+proceso de inscripción. El CUEP trabaja en las dos:
+
+1. **Asesorías.** Generar y publicar los horarios de las asesorías, repartiendo
+   horas, grupos y tutorías sin traslapes ni sobrecargas.
+2. **Inscripción anual.** Acompañar el proceso por el que las personas entran
+   al programa: el registro, la matrícula, el pase con código QR, la mesa de
+   inscripción presencial, el simulacro y los pagos.
+
+No son temas separados: una persona se inscribe para recibir las asesorías, y
+el padrón de inscritos es el punto de partida de la organización de los grupos.
+El detalle del proceso anual está en
+[El ciclo de inscripción anual](08-ciclo-de-inscripcion.md).
+
 ## El problema que queremos resolver
 
 Organizar asesorías implica coordinar muchas cosas al mismo tiempo:
@@ -56,6 +72,9 @@ El diseño de CUEP contempla:
 - No reemplaza las reuniones ni los acuerdos colectivos.
 - No convierte la educación popular en un trámite automático.
 - No garantiza que exista una solución si faltan tutores, espacios u horas.
+- No califica ni rechaza a nadie por sus datos.
+- No condiciona la participación al pago de una actividad opcional.
+- No borra el historial: cada ciclo queda archivado y consultable.
 
 Es una herramienta de apoyo para organizar mejor un trabajo que sigue siendo
 colectivo.

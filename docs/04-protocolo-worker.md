@@ -41,6 +41,21 @@ PENDIENTE → (worker polling) → PROCESANDO → COMPLETADO | ERROR
 
 Ver `03-api-rest.md` → `/worker/tareas/{id}/resultado`.
 
+## Cola de notificaciones
+
+El worker también envía los avisos del proceso de inscripción. El backend
+escribe cada aviso en `notificacion_outbox` y el worker lo entrega:
+
+- `POST /worker/notificaciones?limit=50` → procesa la cola y devuelve
+  `{ "procesados": n, "enviados": n, "fallidos": n }`.
+- Estados de la cola: `pendiente` → `enviado` | `error` | `cancelado`.
+- `dedupe_key` evita avisos duplicados (por ejemplo, un mismo check-in
+  notificado dos veces).
+- Un envío fallido guarda `ultimo_error` y puede reintentarse desde
+  `POST /notificaciones/outbox/{id}/reintentar` (admin).
+- Alternativa sin worker: `POST /notificaciones/procesar` (admin) procesa la
+  cola desde la API.
+
 ## Seguridad
 
 - Header `X-Worker-Key` obligatorio; comparación constant-time.

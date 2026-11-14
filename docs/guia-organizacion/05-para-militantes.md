@@ -44,6 +44,37 @@ El diseño prioriza herramientas de código abierto y un cálculo que puede
 ejecutarse en equipo local. Esto reduce la dependencia de plataformas
 comerciales y permite auditar, adaptar y mantener el proyecto colectivamente.
 
+### El padrón propio como infraestructura política
+
+El proceso de inscripción anual también es un problema político. Saber quiénes
+se están acercando al programa, en qué sedes y con qué necesidades permite:
+
+- planear las asesorías con información propia y no con suposiciones;
+- detectar a tiempo qué comunidades están quedando fuera;
+- diseñar la convocatoria cada año con datos y no con recuerdos;
+- dejar registro de un proceso que antes vivía en listas de mensajes.
+
+Un padrón propio no sirve para seleccionar: sirve para organizarse mejor y
+para dar una respuesta concreta a quienes llegan.
+
+## Cuidados del proceso de inscripción
+
+El ciclo anual trabaja con datos personales y, en algunos casos, con dinero.
+Por eso conviene cuidar:
+
+- **No condicionar.** El simulacro es opcional y el pago no puede ser
+  requisito para participar. Si el costo estorba, hay que discutirlo y no
+  convertirlo en filtro.
+- **No vigilar.** El registro no es un mecanismo de control sobre las
+  personas; el acceso a los datos se limita a quien atiende.
+- **No-centralizar de más.** El padrón ayuda a la organización, pero la
+  información sensible debe tener una caducidad y una forma de revisión
+  acordada.
+- **No usar datos reales fuera del programa.** Los entornos de prueba usan
+  información inventada, precisamente para no exponer a la comunidad.
+- **Cerrar sin borrar.** Al cambiar de año se conserva el historial: el
+  archivo también es un cuidado con las personas que participaron.
+
 ## Cuidados políticos y organizativos
 
 Una herramienta puede reproducir desigualdades si sus datos o criterios no se

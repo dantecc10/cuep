@@ -53,3 +53,14 @@ La información personal debe ser visible solo para quienes la necesitan para
 coordinar las asesorías. El diseño técnico contempla perfiles, roles de acceso,
 contraseñas protegidas y almacenamiento separado para archivos; estos controles
 deben comprobarse y mantenerse durante la implementación.
+
+## Si también quieres participar como aspirante
+
+El proceso de inscripción anual es otro camino dentro del programa: las
+personas se registran, reciben matrícula y se presentan en su sede. Quien
+participa como tutor puede además estar registrado como aspirante; son
+trámites distintos, con datos distintos y con accesos separados.
+
+Pedir los datos de una persona para una cosa no autoriza usarlos para otra.
+El registro de inscripción no habilita el acceso a la información de tutorías,
+ni al revés.

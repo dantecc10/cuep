@@ -73,10 +73,51 @@ SEED_TUTOR_PASSWORD='CAMBIAR' python seeds/seed_demo.py
 
 El seed crea 30 tutores por sede para las 6 sedes objetivo, completa los 5 planes existentes a 12 materias cada uno, asigna disponibilidad y crea un grupo demo por plan y sede. Los emails usan `tutor-<codigo>-01..30@cuep.example.com`, porque los dominios `.local` son rechazados por la validación de email. Todos los tutores comparten la contraseña definida en `SEED_TUTOR_PASSWORD`.
 
+### Aspirantes demo (formulario real)
+
+El archivo `sources/Copia de Lic CUEP 2026.xlsx` contiene 99 respuestas reales del
+formulario de inscripción. El seed `seeds/seed_aspirantes_demo.py` toma 50
+registros (estratificados por sede) y los carga como aspirantes con matrícula,
+folio, QR, estatus y eventos. **Sólo úsalo en staging o en la máquina local**:
+los datos reales no deben salir del servidor y los correos se sustituyen por
+direcciones sintéticas `@cuep.example.com`.
+
+```bash
+cd /opt/cuep/backend
+source .venv/bin/activate
+pip install -r requirements.txt          # incluye openpyxl
+python seeds/seed_aspirantes_demo.py --dry-run
+SEED_STUDENT_PASSWORD='CAMBIAR' python seeds/seed_aspirantes_demo.py
+```
+
+El seed es idempotente: si lo vuelves a ejecutar reutiliza a los aspirantes
+existentes y no duplica cargos ni pagos. Requiere `registro_abierto = true` en
+la configuración del ciclo. Para limpiar esos datos después del cierre anual,
+usa `scripts/reset_academic_year.py --purge-demo` (ver
+[10 — Cierre y Apertura Anual](10-cierre-anual.md)).
+
+### Cierre y apertura anual
+
+Al cambiar de ciclo se ejecuta el script de mantenimiento, que exporta el
+padrón, opcionalmente respalda la base y adelanta el año activo:
+
+```bash
+cd /opt/cuep/backend
+source .venv/bin/activate
+python scripts/reset_academic_year.py --year 2027 --dry-run
+python scripts/reset_academic_year.py --year 2027 --confirm "RESET 2027" \
+  --backup /opt/cuep/backups/cuep-pre-cierre-2026.sql \
+  --export-csv /opt/cuep/backups/inscripciones-2026.csv
+```
+
+El procedimiento completo está en [10 — Cierre y Apertura Anual](10-cierre-anual.md).
+
 ### Variables de entorno (backend/.env)
 
 ```text
 DATABASE_URL=postgresql+asyncpg://cuep:CAMBIAR@localhost:5432/cuep
+ENVIRONMENT=production
+PUBLIC_APP_URL=https://app.example.com
 JWT_SECRET=<hex 64>
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=15
@@ -87,7 +128,9 @@ R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET=cuep-files
+R2_PRIVATE_BUCKET=cuep-private
 R2_PUBLIC_BASE=https://files.example.com
+PAYMENT_PROOF_MAX_BYTES=10485760
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USER=
@@ -97,6 +140,11 @@ SMTP_FROM_NAME=CUEP
 SOLVER_TIMEOUT=300
 TOTP_ENCRYPTION_KEY=<fernet key>
 ```
+
+`PUBLIC_APP_URL` se usa para construir el enlace del pase y el QR.
+`R2_PRIVATE_BUCKET` guarda los comprobantes de transferencia; sin él la subida
+de comprobantes responde 503. `PAYMENT_PROOF_MAX_BYTES` limita el tamaño del
+comprobante (10 MB por defecto).
 
 Genera la clave Fernet con:
 

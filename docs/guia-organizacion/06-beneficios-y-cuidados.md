@@ -11,6 +11,9 @@
 | Transparencia | Historial de propuestas y criterios de asignación. |
 | Autonomía | Uso de software libre y posibilidad de mantener el sistema. |
 | Aprendizaje | Datos y experiencias para mejorar la planeación de futuras sedes. |
+| Inscripción | Un proceso de inscripción con matrícula, pase y registro ordenado. |
+| Padrón | Saber cuántos se inscribieron, en qué sedes y con qué resultados. |
+| Continuidad | Historial de cada ciclo sin borrar lo que ya pasó. |
 
 ## Límites importantes
 
@@ -36,6 +39,33 @@ propuesta. La revisión de datos es una responsabilidad permanente.
 Aunque el proyecto busca usar software libre, requiere equipos, conexión,
 mantenimiento, capacitación y personas responsables. Estos recursos deben
 considerarse desde la planeación.
+
+### El registro de inscripción reúne datos sensibles
+
+El padrón de aspirantes reúne nombre, correo, teléfono, dirección, contacto de
+emergencia y datos escolares. Eso permite atender mejor, pero también obliga a
+cuidar:
+
+- pedir sólo lo necesario y explicar para qué se pide cada dato;
+- limitar el acceso por rol y por sede;
+- guardar los comprobantes de pago en un espacio privado;
+- no usar información real en los entornos de prueba;
+- decidir con la organización cuánto tiempo se conserva el historial y cómo se
+  revisa.
+
+### Un pago puede convertirse en un filtro
+
+El simulacro es una actividad acotada y pagada. Si el costo o la forma de pago
+se vuelve una condición para participar, el proceso deja de ser abierto y
+empieza a filtrar a las personas por su situación económica. Conviene vigilar el
+efecto real de la convocatoria, no sólo el número de registros.
+
+### El archivo no es un olvido
+
+Al cerrar cada ciclo se conserva el padrón de ese año. Eso es útil para
+render cuentas y para el trabajo colectivo, pero también significa que la
+información de las personas se queda en el sistema. Revisar y decidir su
+conservación es parte del cuidado.
 
 ## Principios de uso responsable
 
