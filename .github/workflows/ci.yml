@@ -51,7 +51,7 @@ jobs:
         run: python seeds/load.py
       - name: Lint
         working-directory: backend
-        run: ruff check app seeds scripts tests
+        run: ruff check app seeds scripts tests ../scripts
       - name: Tests
         working-directory: backend
         run: pytest -q

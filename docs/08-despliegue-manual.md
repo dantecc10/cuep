@@ -422,12 +422,45 @@ cd /opt/cuep && git pull
 ./scripts/deploy.sh
 ```
 
-El script `scripts/deploy.sh` instala dependencias del backend si existe `backend/.venv`, aplica migraciones, reinicia `cuep-api.service`, instala dependencias del frontend, carga `frontend/.env.production.local` o `.env.production` antes de construir Next.js y reinicia `cuep-web.service`. Para actualizar el worker:
+El script `scripts/deploy.sh` instala dependencias del backend si existe
+`backend/.venv`, aplica migraciones, reinicia `cuep-api.service`, instala
+dependencias del frontend, carga `frontend/.env.production.local` o
+`.env.production` antes de construir Next.js y reinicia `cuep-web.service`.
+
+Opciones:
+
+| Opción | Para qué sirve |
+|---|---|
+| `--skip-frontend` | No reinstala ni reconstruye el frontend. |
+| `--skip-report` | No imprime el reporte final de módulos. |
+| `--strict` | Devuelve error si el reporte encuentra módulos sin configurar. |
+
+### Reporte de estado de los módulos
+
+Al final del despliegue el script imprime el estado de cada módulo con
+colores (verde = correcto, amarillo = aviso, rojo = falta configuración):
+
+- variables de `backend/.env`: cuáles están puestas, cuáles faltan y cuáles
+  siguen con el valor de ejemplo;
+- migraciones: revisión del código y la que tiene aplicada la base;
+- configuración del ciclo: año, registro, simulacro, efectivo y
+  transferencias;
+- datos del momento: padrón del año activo, cargos, pagos por validar y cola de
+  notificaciones;
+- Cloudflare R2: si los buckets responden y si el privado es distinto del
+  público;
+- servicios: API, web, worker y temporizador de avisos.
+
+El reporte también se puede ejecutar solo, sin desplegar:
 
 ```bash
-cd /opt/cuep/worker && source .venv/bin/activate && pip install -r requirements.txt
-sudo systemctl restart cuep-worker
+cd /opt/cuep/backend && source .venv/bin/activate
+python ../scripts/deploy_report.py
 ```
+
+En `ENVIRONMENT=production` lo que falta se marca en rojo (falla) y lo
+recomendable en amarillo (aviso); en desarrollo los módulos opcionales sin
+configurar sólo generan avisos.
 
 ### Migraciones nuevas del módulo de inscripción
 
@@ -438,6 +471,13 @@ servicios:
 cd /opt/cuep/backend && source .venv/bin/activate
 alembic upgrade head
 sudo systemctl restart cuep-api cuep-web
+```
+
+Para actualizar el worker (corre en la computadora del coordinador):
+
+```bash
+cd /opt/cuep/worker && source .venv/bin/activate && pip install -r requirements.txt
+sudo systemctl restart cuep-worker
 ```
 
 Migraciones del módulo: `b1c2d3e4f5a6` (núcleo de inscripción),
