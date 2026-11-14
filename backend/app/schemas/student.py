@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
@@ -47,6 +49,10 @@ class StudentRead(BaseModel):
     nivel: str
     area: Optional[str] = None
     estatus: str
+    anio: int
+    registration_source: str
+    checkin_at: Optional[datetime] = None
+    checkin_sede_id: Optional[int] = None
 
     first_name: Optional[str] = None
     paternal_last_name: Optional[str] = None

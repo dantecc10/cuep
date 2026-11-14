@@ -1,4 +1,4 @@
-VALID_ROLES = {"admin", "coordinador", "subcoordinador", "tutor", "alumno"}
+VALID_ROLES = {"admin", "coordinador", "subcoordinador", "tutor", "alumno", "inscripcion"}
 
 IMPORT_ROLES_BY_ACTOR = {
     "admin": {"admin", "coordinador", "tutor"},

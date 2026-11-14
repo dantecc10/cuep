@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from app.core.database import get_async_db
 from app.core.dependencies import verify_worker_key
 from app.models.corrida import CorridaHorario
+from app.services.notificaciones import send_pending_notificaciones
 
 router = APIRouter(prefix="/worker", tags=["worker"])
 
@@ -12,6 +13,16 @@ router = APIRouter(prefix="/worker", tags=["worker"])
 def _check_key(x_worker_key: str | None):
     if not verify_worker_key(x_worker_key):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Worker key inválida")
+
+
+@router.post("/notificaciones")
+async def procesar_notificaciones(
+    limit: int = 50,
+    x_worker_key: str | None = Header(default=None),
+    db: AsyncSession = Depends(get_async_db),
+):
+    _check_key(x_worker_key)
+    return await send_pending_notificaciones(db, limit)
 
 
 @router.get("/tareas")

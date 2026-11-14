@@ -8,7 +8,9 @@ ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
+    ENVIRONMENT: str = "development"
     DATABASE_URL: str = "postgresql+asyncpg://cuep:CAMBIAR@localhost:5432/cuep"
+    PUBLIC_APP_URL: str = "http://localhost:3000"
     JWT_SECRET: str = "change-this-to-a-random-secret-at-least-32-chars"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
@@ -25,7 +27,9 @@ class Settings(BaseSettings):
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""
     R2_BUCKET: str = "cuep-files"
+    R2_PRIVATE_BUCKET: str = ""
     R2_PUBLIC_BASE: str = ""
+    PAYMENT_PROOF_MAX_BYTES: int = 10 * 1024 * 1024
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
     SMTP_USER: str = ""

@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.database import engine
 from app.core.limiter import limiter
-from app.routers import asistencia, auth, dashboard, users, materias, sedes, tutores, corridas, worker, two_factor, students, planes, uploads, imports, horario
+from app.routers import asistencia, auth, dashboard, users, materias, sedes, tutores, corridas, worker, two_factor, students, planes, uploads, imports, horario, inscripciones, pagos, notificaciones
 from app.services.storage import log_r2_config
 
 @asynccontextmanager
@@ -28,6 +28,9 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(inscripciones.router, prefix="/api/v1")
+app.include_router(pagos.router, prefix="/api/v1")
+app.include_router(notificaciones.router, prefix="/api/v1")
 app.include_router(two_factor.router, prefix="/api/v1")
 app.include_router(students.router, prefix="/api/v1")
 app.include_router(planes.router, prefix="/api/v1")

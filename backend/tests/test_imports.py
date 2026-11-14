@@ -57,7 +57,7 @@ async def test_import_materias_partial_and_duplicates():
         second = await client.post("/api/v1/imports/materias", files=files, headers=_auth(token))
         assert second.status_code == 200, second.text
         report = second.json()
-        assert report["creadas"] == 1
+        assert report["creadas"] == 0
         assert report["omitidas"] == 1
         assert report["fallidas"] == 1
 

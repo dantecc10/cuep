@@ -19,7 +19,7 @@ def _validate_role(role: str) -> None:
     if role not in VALID_ROLES:
         raise HTTPException(
             status_code=422,
-            detail="Rol inválido. Usa admin, coordinador, subcoordinador, tutor o alumno.",
+            detail="Rol inválido. Usa admin, coordinador, subcoordinador, tutor, alumno o inscripcion.",
         )
 
 

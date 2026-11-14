@@ -4,6 +4,7 @@ from typing import Optional
 
 class EnrollmentCreate(BaseModel):
     grupo_id: int
+    student_id: Optional[int] = None
 
 
 class EnrollmentRead(BaseModel):

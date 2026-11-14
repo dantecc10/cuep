@@ -110,3 +110,90 @@ async def upload_avatar(file: UploadFile, user_id: int) -> str:
         raise HTTPException(status_code=502, detail=detail) from exc
 
     return _public_url(key)
+
+
+ALLOWED_PROOF_TYPES = {
+    "application/pdf": ".pdf",
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
+
+
+def private_bucket() -> str:
+    return settings.R2_PRIVATE_BUCKET or settings.R2_BUCKET
+
+
+def _s3_client():
+    import boto3
+
+    return boto3.client(
+        "s3",
+        endpoint_url=settings.r2_endpoint_url,
+        aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+        region_name="auto",
+    )
+
+
+async def upload_payment_proof(
+    file: UploadFile, student_id: int, pago_id: int
+) -> dict[str, str | int]:
+    bucket = private_bucket()
+    if not r2_configured() or not bucket:
+        raise HTTPException(
+            status_code=503,
+            detail="El almacenamiento privado no está configurado.",
+        )
+    content_type = file.content_type or ""
+    extension = ALLOWED_PROOF_TYPES.get(content_type)
+    if extension is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Formato no permitido. Usa PDF, JPG, PNG o WEBP.",
+        )
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="El comprobante está vacío.")
+    if len(data) > settings.PAYMENT_PROOF_MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"El comprobante no debe superar {settings.PAYMENT_PROOF_MAX_BYTES // (1024 * 1024)} MB.",
+        )
+    key = f"comprobantes/{student_id}/{pago_id}/{uuid.uuid4().hex}{extension}"
+    client = _s3_client()
+
+    def put() -> None:
+        client.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=data,
+            ContentType=content_type,
+        )
+
+    try:
+        await run_in_threadpool(put)
+    except Exception as exc:
+        logger.exception("Fallo al subir comprobante a R2 privado")
+        raise HTTPException(
+            status_code=502,
+            detail="No se pudo subir el comprobante. Intenta de nuevo.",
+        ) from exc
+    return {
+        "key": key,
+        "nombre": file.filename or f"comprobante{extension}",
+        "content_type": content_type,
+        "size": len(data),
+    }
+
+
+def presigned_payment_proof_url(key: str, expires_in: int = 900) -> str | None:
+    bucket = private_bucket()
+    if not r2_configured() or not bucket:
+        return None
+    client = _s3_client()
+    return client.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": bucket, "Key": key},
+        ExpiresIn=expires_in,
+    )

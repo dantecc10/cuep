@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 
 from app.core.database import get_async_db
-from app.core.dependencies import get_current_user, require_role
+from app.core.dependencies import can_manage_sede, get_current_user, require_role
 from app.models.user import User
 from app.models.student import Student, Enrollment
 from app.models.sede import Sede, Grupo
@@ -18,6 +18,7 @@ from app.schemas.enrollment import (
     EnrollmentStatusUpdate,
 )
 from app.services.email import send_email_sync
+from app.services.normalization import normalize_phone_mx
 from fastapi.concurrency import run_in_threadpool
 
 router = APIRouter(tags=["students"])
@@ -86,10 +87,27 @@ async def get_my_student(user: User = Depends(get_current_user), db: AsyncSessio
 @router.put("/students/me", response_model=StudentRead)
 async def update_my_student(payload: StudentUpdate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
     student = await _get_student(db, user)
-    for field in ["sede_id", "preferred_sede_id", "nivel", "area", "estatus", "first_name", "paternal_last_name", "maternal_last_name", "full_name", "address", "colony", "municipality_state", "phone", "emergency_contact_raw", "emergency_contact_name", "emergency_contact_phone", "high_school_type", "exam_attempts", "desired_degree", "study_area", "diagnostic_exam", "donation_willingness", "presencial_consent", "credential_collected", "preferred_course_location", "photo_url", "notes"]:
+    for field in ["preferred_sede_id", "first_name", "paternal_last_name", "maternal_last_name", "full_name", "address", "colony", "municipality_state", "emergency_contact_raw", "emergency_contact_name", "emergency_contact_phone", "high_school_type", "exam_attempts", "desired_degree", "study_area", "diagnostic_exam", "donation_willingness", "presencial_consent", "preferred_course_location", "photo_url", "notes"]:
         value = getattr(payload, field, None)
         if value is not None:
             setattr(student, field, value)
+    if payload.phone is not None:
+        try:
+            phone_normalized = normalize_phone_mx(payload.phone)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        duplicate = await db.execute(
+            select(Student.id).where(
+                Student.phone_normalized == phone_normalized,
+                Student.id != student.id,
+                Student.deleted_at.is_(None),
+            ).limit(1)
+        )
+        if duplicate.scalar_one_or_none() is not None:
+            raise HTTPException(status_code=409, detail="Teléfono ya registrado")
+        student.phone = payload.phone
+        student.phone_normalized = phone_normalized
+        user.telefono = payload.phone
     if payload.photo_url is not None:
         user.foto_url = payload.photo_url
     await db.flush()
@@ -132,7 +150,15 @@ async def available_groups(
 
 @router.post("/enrollments", response_model=EnrollmentRead, status_code=201)
 async def create_enrollment(payload: EnrollmentCreate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
-    student = await _get_student(db, user)
+    if user.role not in ("admin", "coordinador", "subcoordinador"):
+        raise HTTPException(status_code=403, detail="Sólo el personal puede asignar grupos")
+    if payload.student_id is None:
+        raise HTTPException(status_code=422, detail="Selecciona al alumno a inscribir")
+    student = await db.get(Student, payload.student_id)
+    if student is None or student.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Perfil de estudiante no encontrado")
+    if not can_manage_sede(user, student.sede_id):
+        raise HTTPException(status_code=403, detail="No autorizado para esta sede")
     grupo = await db.get(Grupo, payload.grupo_id)
     if grupo is None:
         raise HTTPException(status_code=404, detail="Grupo no encontrado")
@@ -164,8 +190,14 @@ async def create_enrollment(payload: EnrollmentCreate, user: User = Depends(get_
     db.add(enrollment)
     await db.flush()
     await db.refresh(enrollment)
-    # notify
-    await run_in_threadpool(send_email_sync, user.email, "Inscripción CUEP", f"Tu inscripción al grupo {grupo.nombre} está {enrollment.estado}.")
+    student_user = await db.get(User, student.user_id) if student.user_id else None
+    if student_user is not None:
+        await run_in_threadpool(
+            send_email_sync,
+            student_user.email,
+            "Inscripción CUEP",
+            f"Tu inscripción al grupo {grupo.nombre} está {enrollment.estado}.",
+        )
     return enrollment
 
 
@@ -206,10 +238,14 @@ async def my_enrollments(user: User = Depends(get_current_user), db: AsyncSessio
 
 @router.delete("/enrollments/{enrollment_id}", status_code=204)
 async def cancel_enrollment(enrollment_id: int, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
-    student = await _get_student(db, user)
+    if user.role not in ("admin", "coordinador", "subcoordinador"):
+        raise HTTPException(status_code=403, detail="Sólo el personal puede cancelar grupos")
     enrollment = await db.get(Enrollment, enrollment_id)
-    if enrollment is None or enrollment.student_id != student.id:
+    if enrollment is None:
         raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+    student = await db.get(Student, enrollment.student_id)
+    if student is None or not can_manage_sede(user, student.sede_id):
+        raise HTTPException(status_code=403, detail="No autorizado para esta sede")
     if enrollment.estado == "cancelada":
         return None
     was_active = enrollment.estado in ACTIVE_STATUSES
