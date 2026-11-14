@@ -196,7 +196,7 @@ histórico, sólo avanza `anio` y deja el registro cerrado.
 |---|---|
 | id | SERIAL PK |
 | student_id | INT FK students ON DELETE CASCADE |
-| tipo | VARCHAR(30) CHECK IN ('registro','checkin','cambio_estatus','pago_efectivo','pago_comprobante','pago_validado','pago_rechazado','pase_generado','notificacion','importacion') |
+| tipo | VARCHAR(30) CHECK IN ('registro','checkin','cambio_estatus','pago_efectivo','pago_comprobante','pago_validado','pago_rechazado','pase_generado','notificacion','importacion','asignacion_grupo') |
 | estado_anterior / estado_nuevo | VARCHAR(20) |
 | actor_id | INT FK usuarios (staff que ejecutó la acción) |
 | sede_id | INT FK sedes |
@@ -253,6 +253,13 @@ Plantillas iniciales sembradas por la migración `e4f5a6b7c8d9`:
 `registro_confirmado`, `pase_inscripcion`, `recordatorio_inscripcion_presencial`,
 `checkin_confirmado`, `simulacro_confirmado`, `pago_recibido`, `pago_validado`,
 `pago_rechazado`, `credencial_lista`.
+
+Plantillas de grupos sembradas por la migración `a6b7c8d9e0f1`:
+`grupo_asignado`, `estado_inscripcion`, `promocion_lista_espera`.
+
+La asignación de grupos vive en la tabla `enrollments` (existente): cada alumno
+puede tener varios grupos; `estado` distingue `confirmada`, `pendiente_pago`,
+`lista_espera` y `cancelada`, y `payment_status` tracks el cobro de la sede.
 
 
 ### enrollments

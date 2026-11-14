@@ -28,6 +28,7 @@ TIPOS_EVENTO_INSCRIPCION = (
     "pase_generado",
     "notificacion",
     "importacion",
+    "asignacion_grupo",
 )
 
 
@@ -74,7 +75,8 @@ class EventoInscripcion(Base):
     __table_args__ = (
         CheckConstraint(
             "tipo IN ('registro','checkin','cambio_estatus','pago_efectivo','pago_comprobante',"
-            "'pago_validado','pago_rechazado','pase_generado','notificacion','importacion')",
+            "'pago_validado','pago_rechazado','pase_generado','notificacion','importacion',"
+            "'asignacion_grupo')",
             name="ck_eventos_inscripcion_tipo",
         ),
         Index("ix_eventos_inscripcion_student_created", "student_id", "created_at"),

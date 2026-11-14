@@ -221,3 +221,20 @@ class CheckInResponse(BaseModel):
     estatus: str
     checkin_at: datetime | None = None
     ya_registrado: bool = False
+
+
+class GrupoAsignarCreate(BaseModel):
+    grupo_id: int
+
+
+class GrupoAsignadoRead(BaseModel):
+    enrollment_id: int
+    grupo_id: int
+    grupo_nombre: str
+    materia: str | None = None
+    nivel: str | None = None
+    area: str | None = None
+    sede_nombre: str | None = None
+    estado: str
+    payment_status: str
+    created_at: datetime

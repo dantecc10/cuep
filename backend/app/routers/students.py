@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -18,11 +17,13 @@ from app.schemas.enrollment import (
     EnrollmentRead,
     EnrollmentStatusUpdate,
 )
-from app.services.email import email_delivered, send_email_sync
+from app.services.grupos import (
+    GrupoError,
+    asignar_grupo,
+    notificar_estado_inscripcion,
+    notificar_promocion,
+)
 from app.services.normalization import normalize_phone_mx
-from fastapi.concurrency import run_in_threadpool
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["students"])
 
@@ -69,22 +70,11 @@ async def _promote_waitlist(db: AsyncSession, grupo_id: int):
         wl.estado = "confirmada"
         wl.payment_status = "no_requerido"
     await db.flush()
-    # notify student
     student = await db.get(Student, wl.student_id)
     if student:
-        user = await db.get(User, student.user_id)
-        if user:
-            email_status = await run_in_threadpool(
-                send_email_sync,
-                user.email,
-                "Promoción de lista de espera - CUEP",
-                f"Has sido promovido de la lista de espera al grupo {grupo.nombre}.",
-            )
-            if not email_delivered(email_status):
-                logger.warning(
-                    "No se pudo avisar a %s de su promoción de la lista de espera",
-                    user.email,
-                )
+        materia = await db.get(Materia, grupo.materia_id)
+        if materia:
+            await notificar_promocion(db, student, sede, grupo, materia)
 
 
 @router.get("/students/me", response_model=StudentRead)
@@ -167,52 +157,11 @@ async def create_enrollment(payload: EnrollmentCreate, user: User = Depends(get_
         raise HTTPException(status_code=404, detail="Perfil de estudiante no encontrado")
     if not can_manage_sede(user, student.sede_id):
         raise HTTPException(status_code=403, detail="No autorizado para esta sede")
-    grupo = await db.get(Grupo, payload.grupo_id)
-    if grupo is None:
-        raise HTTPException(status_code=404, detail="Grupo no encontrado")
-    if grupo.sede_id != student.sede_id:
-        raise HTTPException(status_code=400, detail="El grupo no pertenece a tu sede")
-    materia = await db.get(Materia, grupo.materia_id)
-    if materia is None or materia.nivel != student.nivel:
-        raise HTTPException(status_code=400, detail="Nivel incompatible")
-    if student.nivel == "LICENCIATURA" and student.area and materia.area != student.area:
-        raise HTTPException(status_code=400, detail="Área incompatible")
-    sede = await db.get(Sede, grupo.sede_id)
-    # duplicate check
-    dup = await db.execute(select(Enrollment).where(Enrollment.student_id == student.id, Enrollment.grupo_id == grupo.id, Enrollment.estado != "cancelada"))
-    if dup.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="Ya estás inscrito en este grupo")
-    occupied = await _active_count(db, grupo.id)
-    if occupied >= grupo.capacidad:
-        if sede and sede.waitlist_enabled:
-            enrollment = Enrollment(student_id=student.id, grupo_id=grupo.id, estado="lista_espera", payment_status="no_requerido")
-            db.add(enrollment)
-            await db.flush()
-            await db.refresh(enrollment)
-            return enrollment
-        raise HTTPException(status_code=409, detail="Grupo sin cupo")
-    if sede and sede.payment_enabled:
-        enrollment = Enrollment(student_id=student.id, grupo_id=grupo.id, estado="pendiente_pago", payment_status="pendiente")
-    else:
-        enrollment = Enrollment(student_id=student.id, grupo_id=grupo.id, estado="confirmada", payment_status="no_requerido")
-    db.add(enrollment)
-    await db.flush()
-    await db.refresh(enrollment)
-    student_user = await db.get(User, student.user_id) if student.user_id else None
-    if student_user is not None:
-        email_status = await run_in_threadpool(
-            send_email_sync,
-            student_user.email,
-            "Inscripción CUEP",
-            f"Tu inscripción al grupo {grupo.nombre} está {enrollment.estado}.",
-        )
-        if not email_delivered(email_status):
-            logger.warning(
-                "No se pudo avisar a %s de su inscripción al grupo %s",
-                student_user.email,
-                grupo.nombre,
-            )
-    return enrollment
+    try:
+        resultado = await asignar_grupo(db, student, payload.grupo_id, actor_id=user.id)
+    except GrupoError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return resultado["enrollment"]
 
 
 async def _enrollment_detail(db: AsyncSession, enrollment: Enrollment) -> dict:
@@ -333,16 +282,15 @@ async def update_enrollment(enrollment_id: int, payload: EnrollmentStatusUpdate,
             await _promote_waitlist(db, enrollment.grupo_id)
     await db.flush()
     await db.refresh(enrollment)
-    # notify student on confirmation
     student = await db.get(Student, enrollment.student_id)
     if student:
-        u = await db.get(User, student.user_id)
-        if u:
-            email_status = await run_in_threadpool(send_email_sync, u.email, "Estado de inscripción CUEP", f"Tu inscripción ahora está {enrollment.estado}.")
-            if not email_delivered(email_status):
-                logger.warning(
-                    "No se pudo avisar a %s del cambio de estado de su inscripción",
-                    u.email,
+        grupo = await db.get(Grupo, enrollment.grupo_id)
+        if grupo:
+            materia = await db.get(Materia, grupo.materia_id)
+            sede = await db.get(Sede, grupo.sede_id)
+            if materia:
+                await notificar_estado_inscripcion(
+                    db, student, grupo, materia, sede, enrollment.estado
                 )
     return enrollment
 

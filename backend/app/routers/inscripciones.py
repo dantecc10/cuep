@@ -11,7 +11,7 @@ from app.core.dependencies import get_current_user, require_role
 from app.models.inscripcion import EventoInscripcion
 from app.models.pago import Cargo, Pago
 from app.models.sede import Sede
-from app.models.student import Student
+from app.models.student import Enrollment, Student
 from app.models.user import User
 from app.services.pdf import build_pase_pdf
 from app.schemas.inscripcion import (
@@ -21,6 +21,8 @@ from app.schemas.inscripcion import (
     ConfiguracionInscripcionUpdate,
     EstadoUpdate,
     EventoInscripcionRead,
+    GrupoAsignadoRead,
+    GrupoAsignarCreate,
     InscripcionMe,
     InscripcionPage,
     InscripcionRead,
@@ -31,6 +33,12 @@ from app.services.inscripcion import (
     get_config,
     get_inscripcion_me,
     pase_url,
+)
+from app.services.grupos import (
+    GrupoError,
+    asignar_grupo,
+    desasignar_grupo,
+    grupos_del_alumno,
 )
 from app.services.notificaciones import enqueue_notificacion, student_context
 from app.services.pagos import calcular_saldo
@@ -435,3 +443,67 @@ async def update_estatus(
     await db.flush()
     await db.refresh(student)
     return _student_payload(student)
+
+
+@router.get("/{student_id}/grupos", response_model=list[GrupoAsignadoRead])
+async def list_grupos_alumno(
+    student_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    user: User = Depends(get_current_user),
+):
+    _require_staff(user)
+    student = await _get_student_or_404(db, student_id)
+    _require_sede_access(user, student.sede_id)
+    return await grupos_del_alumno(db, student)
+
+
+@router.post("/{student_id}/grupos", response_model=GrupoAsignadoRead, status_code=201)
+async def asignar_grupo_alumno(
+    student_id: int,
+    payload: GrupoAsignarCreate,
+    db: AsyncSession = Depends(get_async_db),
+    user: User = Depends(get_current_user),
+):
+    _require_staff(user)
+    student = await _get_student_or_404(db, student_id)
+    _require_sede_access(user, student.sede_id)
+    try:
+        resultado = await asignar_grupo(db, student, payload.grupo_id, actor_id=user.id)
+    except GrupoError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    enrollment = resultado["enrollment"]
+    grupo = resultado["grupo"]
+    materia = resultado["materia"]
+    sede = resultado["sede"]
+    return GrupoAsignadoRead(
+        enrollment_id=enrollment.id,
+        grupo_id=grupo.id,
+        grupo_nombre=grupo.nombre,
+        materia=materia.nombre,
+        nivel=materia.nivel,
+        area=materia.area,
+        sede_nombre=sede.nombre if sede else None,
+        estado=enrollment.estado,
+        payment_status=enrollment.payment_status,
+        created_at=enrollment.created_at,
+    )
+
+
+@router.delete("/{student_id}/grupos/{enrollment_id}")
+async def desasignar_grupo_alumno(
+    student_id: int,
+    enrollment_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    user: User = Depends(get_current_user),
+):
+    _require_staff(user)
+    student = await _get_student_or_404(db, student_id)
+    _require_sede_access(user, student.sede_id)
+    enrollment = await db.get(Enrollment, enrollment_id)
+    if enrollment is None or enrollment.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Asignación no encontrada")
+    try:
+        await desasignar_grupo(db, student, enrollment, actor_id=user.id)
+    except GrupoError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return {"desasignado": enrollment_id}

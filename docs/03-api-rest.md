@@ -126,6 +126,12 @@ transferencias).
 - `GET /inscripciones/{student_id}/eventos` → bitácora del alumno.
 - `PATCH /inscripciones/{student_id}/estatus` body: `{ estatus }` → cambia el estatus y registra evento.
 - `POST /inscripciones/checkin` body: `{ identificador, sede_id? }` → busca por matrícula, QR, correo o teléfono y confirma asistencia.
+- `GET /inscripciones/{student_id}/grupos` → grupos asignados al alumno.
+- `POST /inscripciones/{student_id}/grupos` body: `{ grupo_id }` → asigna un grupo
+  (admin/coordinador/subcoordinador/`inscripcion` de esa sede). Respeta nivel y
+  área, rechaza duplicados (409), manda a lista de espera si el grupo está lleno
+  y deja el evento `asignacion_grupo` en la bitácora.
+- `DELETE /inscripciones/{student_id}/grupos/{enrollment_id}` → desasigna el grupo.
 - `GET /inscripciones/{student_id}/pase` → PDF del pase.
 - `GET /inscripciones/export.csv?anio=&sede_id=&estatus=&nivel=&area=&search=` → CSV con BOM UTF-8 (admin/coordinador/subcoordinador).
 - `GET /pagos?estatus=&metodo=&sede_id=&search=` → listado de pagos con filtro de sede para roles no admin.

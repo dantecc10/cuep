@@ -115,3 +115,17 @@ Criterios de aceptación:
 - Los alumnos, cargos, pagos y eventos del ciclo anterior no se modifican.
 - El nuevo ciclo exige revisión de simulacro, banco y efectivo antes de abrir el registro.
 - Detalle completo en [10 — Cierre y Apertura Anual](10-cierre-anual.md).
+
+### UC-20 Asignar grupos a los inscritos
+Actor: Personal de inscripción (su sede), coordinador o administración. Flujo: se
+consulta el detalle del aspirante → se asigna un grupo con
+`POST /inscripciones/{id}/grupos` → el alumno recibe el aviso.
+Criterios de aceptación:
+- El grupo debe ser de la sede del alumno y tener el mismo nivel y área.
+- No se puede asignar dos veces el mismo grupo (409).
+- Si el grupo está lleno y la sede tiene lista de espera, la asignación queda
+  en `lista_espera`; si no, responde 409.
+- Cada asignación deja un evento `asignacion_grupo` en la bitácora y encola la
+  notificación `grupo_asignado`.
+- El rol `inscripcion` sólo opera su sede; otra sede recibe 403.
+- Los alumnos no pueden asignarse grupos a sí mismos.
