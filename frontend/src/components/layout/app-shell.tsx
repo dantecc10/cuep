@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   BadgeCheck,
+  Bell,
   BookOpen,
   CalendarClock,
   CalendarDays,
@@ -19,7 +20,10 @@ import {
   LogOut,
   MapPin,
   PlayCircle,
+  ReceiptText,
   Send,
+  Settings,
+  UserCheck,
   Users,
   UserRound,
   type LucideIcon,
@@ -32,6 +36,11 @@ type NavLink = { href: string; label: string; icon: LucideIcon };
 const linksByRole: Record<string, NavLink[]> = {
   admin: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+    { href: "/dashboard/aspirantes", label: "Aspirantes", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", icon: ReceiptText },
+    { href: "/dashboard/configuracion-inscripcion", label: "Configuración", icon: Settings },
+    { href: "/dashboard/notificaciones", label: "Notificaciones", icon: Bell },
     { href: "/dashboard/sedes", label: "Sedes", icon: MapPin },
     { href: "/dashboard/planes", label: "Planes", icon: Layers },
     { href: "/dashboard/materias", label: "Materias", icon: BookOpen },
@@ -42,6 +51,9 @@ const linksByRole: Record<string, NavLink[]> = {
   ],
   coordinador: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+    { href: "/dashboard/aspirantes", label: "Aspirantes", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", icon: ReceiptText },
     { href: "/dashboard/grupos", label: "Grupos", icon: Users },
     { href: "/dashboard/tutores", label: "Tutores", icon: GraduationCap },
     { href: "/dashboard/corridas", label: "Corridas", icon: PlayCircle },
@@ -52,12 +64,22 @@ const linksByRole: Record<string, NavLink[]> = {
   ],
   subcoordinador: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+    { href: "/dashboard/aspirantes", label: "Aspirantes", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", icon: ReceiptText },
     { href: "/dashboard/grupos", label: "Grupos", icon: Users },
     { href: "/dashboard/tutores", label: "Tutores", icon: GraduationCap },
     { href: "/dashboard/corridas", label: "Corridas", icon: PlayCircle },
     { href: "/dashboard/asistencia", label: "Asistencia", icon: ClipboardCheck },
     { href: "/dashboard/inscripciones", label: "Inscripciones", icon: ClipboardList },
     { href: "/dashboard/publicar", label: "Publicar", icon: Send },
+    { href: "/mi-perfil", label: "Mi perfil", icon: UserRound },
+  ],
+  inscripcion: [
+    { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+    { href: "/dashboard/aspirantes", label: "Aspirantes", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", icon: ReceiptText },
     { href: "/mi-perfil", label: "Mi perfil", icon: UserRound },
   ],
   tutor: [
@@ -69,7 +91,8 @@ const linksByRole: Record<string, NavLink[]> = {
   ],
   alumno: [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
-    { href: "/mi-inscripcion", label: "Mi inscripción", icon: FileText },
+    { href: "/mi-registro", label: "Mi registro", icon: FileText },
+    { href: "/mi-pagos", label: "Mis pagos", icon: ReceiptText },
     { href: "/mi-perfil", label: "Mi perfil", icon: UserRound },
     { href: "/mi-credencial", label: "Mi credencial", icon: BadgeCheck },
     { href: "/mi-horario", label: "Mi horario", icon: CalendarDays },
@@ -80,6 +103,7 @@ const roleLabels: Record<string, string> = {
   admin: "Administración",
   coordinador: "Coordinación",
   subcoordinador: "Subcoordinación",
+  inscripcion: "Inscripción",
   tutor: "Tutoría",
   alumno: "Estudiante",
 };

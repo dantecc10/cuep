@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   BadgeCheck,
+  Bell,
   BookOpen,
   CalendarClock,
   Clock,
@@ -15,7 +16,10 @@ import {
   Layers,
   MapPin,
   PlayCircle,
+  ReceiptText,
   Send,
+  Settings,
+  UserCheck,
   UserRound,
   Users,
   type LucideIcon,
@@ -29,6 +33,11 @@ type Acceso = { href: string; label: string; description: string; icon: LucideIc
 
 const accesos: Record<string, Acceso[]> = {
   admin: [
+    { href: "/dashboard/aspirantes", label: "Aspirantes", description: "Padrón anual, matrículas y pases.", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", description: "Valida pases, check-in y cobros en efectivo.", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", description: "Revisa transferencias y emite recibos.", icon: ReceiptText },
+    { href: "/dashboard/configuracion-inscripcion", label: "Configuración", description: "Año, costos y datos bancarios.", icon: Settings },
+    { href: "/dashboard/notificaciones", label: "Notificaciones", description: "Plantillas y salida de correos.", icon: Bell },
     { href: "/dashboard/sedes", label: "Sedes", description: "Espacios y ubicaciones del colectivo.", icon: MapPin },
     { href: "/dashboard/planes", label: "Planes", description: "Organiza materias por plan de estudios.", icon: Layers },
     { href: "/dashboard/materias", label: "Materias", description: "Catálogo académico del CUEP.", icon: BookOpen },
@@ -37,6 +46,9 @@ const accesos: Record<string, Acceso[]> = {
     { href: "/dashboard/usuarios", label: "Usuarios", description: "Roles, accesos y coordinaciones.", icon: Users },
   ],
   coordinador: [
+    { href: "/dashboard/aspirantes", label: "Aspirantes", description: "Padrón anual de tu sede.", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", description: "Valida pases y cobra en efectivo.", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", description: "Revisa transferencias de tu sede.", icon: ReceiptText },
     { href: "/dashboard/grupos", label: "Grupos", description: "Abre grupos y revisa cupos.", icon: Users },
     { href: "/dashboard/tutores", label: "Tutores", description: "Carga docente y disponibilidad.", icon: GraduationCap },
     { href: "/dashboard/corridas", label: "Corridas", description: "Genera horarios para tu sede.", icon: PlayCircle },
@@ -45,6 +57,9 @@ const accesos: Record<string, Acceso[]> = {
     { href: "/dashboard/publicar", label: "Publicar", description: "Publica horarios aprobados.", icon: Send },
   ],
   subcoordinador: [
+    { href: "/dashboard/aspirantes", label: "Aspirantes", description: "Padrón anual de tu sede.", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", description: "Valida pases y cobra en efectivo.", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", description: "Revisa transferencias de tu sede.", icon: ReceiptText },
     { href: "/dashboard/grupos", label: "Grupos", description: "Abre grupos y revisa cupos.", icon: Users },
     { href: "/dashboard/tutores", label: "Tutores", description: "Carga docente y disponibilidad.", icon: GraduationCap },
     { href: "/dashboard/corridas", label: "Corridas", description: "Genera horarios para tu sede.", icon: PlayCircle },
@@ -52,13 +67,19 @@ const accesos: Record<string, Acceso[]> = {
     { href: "/dashboard/inscripciones", label: "Inscripciones", description: "Cupos, espera y pagos.", icon: ClipboardList },
     { href: "/dashboard/publicar", label: "Publicar", description: "Publica horarios aprobados.", icon: Send },
   ],
+  inscripcion: [
+    { href: "/dashboard/aspirantes", label: "Aspirantes", description: "Consulta el padrón de tu sede.", icon: Users },
+    { href: "/dashboard/inscripcion-presencial", label: "Inscripción presencial", description: "Valida pases, check-in y cobros en efectivo.", icon: UserCheck },
+    { href: "/dashboard/pagos", label: "Pagos", description: "Consulta los pagos registrados en tu sede.", icon: ReceiptText },
+  ],
   tutor: [
     { href: "/dashboard/disponibilidad", label: "Disponibilidad", description: "Marca los horarios en que puedes dar asesoría.", icon: CalendarClock },
     { href: "/dashboard/materias", label: "Materias", description: "Consulta el catálogo académico.", icon: BookOpen },
     { href: "/dashboard/mi-horario", label: "Mi horario", description: "Revisa tus asesorías asignadas.", icon: CalendarDays },
   ],
   alumno: [
-    { href: "/mi-inscripcion", label: "Mi inscripción", description: "Elige grupos y revisa tu lugar.", icon: FileText },
+    { href: "/mi-registro", label: "Mi registro", description: "Consulta tu matrícula, pase y estado.", icon: FileText },
+    { href: "/mi-pagos", label: "Mis pagos", description: "Revisa cargos, sube comprobantes y descarga recibos.", icon: ReceiptText },
     { href: "/mi-perfil", label: "Mi perfil", description: "Completa tus datos de aspirante.", icon: UserRound },
     { href: "/mi-credencial", label: "Mi credencial", description: "Consulta y descarga tu credencial.", icon: BadgeCheck },
     { href: "/mi-horario", label: "Mi horario", description: "Consulta tus asesorías publicadas.", icon: CalendarDays },
@@ -69,6 +90,7 @@ const roleLabels: Record<string, string> = {
   admin: "Administración",
   coordinador: "Coordinación",
   subcoordinador: "Subcoordinación",
+  inscripcion: "Inscripción",
   tutor: "Tutoría",
   alumno: "Estudiante",
 };
