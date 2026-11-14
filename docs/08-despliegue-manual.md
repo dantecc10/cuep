@@ -210,19 +210,20 @@ curl -X POST -H "X-Worker-Key: $WORKER_API_KEY" \
   https://api.example.com/api/v1/worker/notificaciones
 ```
 
-Para no depender de que alguien lo haga a mano, instala un temporizador de
-sistema:
+Para no depender de que alguien lo haga a mano, instala el temporizador de
+sistema (los archivos están en `infra/`):
 
 ```ini
 # /etc/systemd/system/cuep-notificaciones.service
 [Unit]
 Description=Drena la salida de notificaciones del CUEP
 After=network.target cuep-api.service
+Requires=cuep-api.service
 
 [Service]
 Type=oneshot
 EnvironmentFile=/opt/cuep/backend/.env
-ExecStart=/bin/bash -c 'curl -sS -X POST -H "X-Worker-Key: ${WORKER_API_KEY}" http://127.0.0.1:2013/api/v1/worker/notificaciones'
+ExecStart=/bin/bash -c 'curl -sS --fail -X POST -H "X-Worker-Key: ${WORKER_API_KEY}" http://127.0.0.1:2013/api/v1/worker/notificaciones'
 
 [Install]
 WantedBy=multi-user.target
@@ -236,12 +237,14 @@ Description=Envía las notificaciones pendientes del CUEP cada 5 minutos
 [Timer]
 OnBootSec=2min
 OnUnitActiveSec=5min
+Persistent=true
 
 [Install]
 WantedBy=timers.target
 ```
 
 ```bash
+sudo cp infra/cuep-notificaciones.service infra/cuep-notificaciones.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now cuep-notificaciones.timer
 systemctl list-timers | grep notificaciones

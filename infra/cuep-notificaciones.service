@@ -1,0 +1,12 @@
+[Unit]
+Description=Drena la salida de notificaciones del CUEP
+After=network.target cuep-api.service
+Requires=cuep-api.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/cuep/backend/.env
+ExecStart=/bin/bash -c 'curl -sS --fail -X POST -H "X-Worker-Key: ${WORKER_API_KEY}" http://127.0.0.1:2013/api/v1/worker/notificaciones'
+
+[Install]
+WantedBy=multi-user.target
