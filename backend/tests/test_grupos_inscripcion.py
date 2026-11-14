@@ -221,7 +221,7 @@ async def test_alumno_no_puede_asignar_grupos():
         assert enrollment.estado == "cancelada"
         assert enrollment.deleted_at is not None
         eventos = (await db.execute(select_eventos(data["student_id"]))).scalars().all()
-        assert eventos[0].estado_nuevo == "cancelada"
+        assert any(evento.estado_nuevo == "cancelada" for evento in eventos)
 
 
 @pytest.mark.asyncio

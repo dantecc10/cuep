@@ -40,6 +40,11 @@ async def test_login_admin():
 async def test_register_student():
     email = f"student-{uuid.uuid4().hex[:8]}@example.com"
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        sedes = await client.get("/api/v1/sedes")
+        assert sedes.status_code == 200
+        sede = next(
+            item for item in sedes.json() if item.get("activo") and item.get("codigo")
+        )
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -47,7 +52,7 @@ async def test_register_student():
                 "password": "stud123",
                 "nombre": "Alumno",
                 "apellido_paterno": "Demo",
-                "sede_id": 1,
+                "sede_id": sede["id"],
                 "nivel": "PREPA",
             },
         )
